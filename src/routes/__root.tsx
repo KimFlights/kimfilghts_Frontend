@@ -52,9 +52,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Aero — Next-Generation Flight Booking" },
+      { title: "KimFlights — Next-Generation Flight Booking" },
       { name: "description", content: "Cinematic flight discovery. Find premium deals and curate multi-city itineraries effortlessly." },
-      { property: "og:title", content: "Aero — Next-Generation Flight Booking" },
+      { property: "og:title", content: "KimFlights — Next-Generation Flight Booking" },
       { property: "og:description", content: "Cinematic flight discovery. Find premium deals and curate multi-city itineraries effortlessly." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
