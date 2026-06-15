@@ -84,10 +84,25 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-  h1, h2, h3, h4 { letter-spacing: -0.02em; font-weight: 500; }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+    font-weight: 500;
+  }
 }
 
 @utility glass-panel {
@@ -97,22 +112,44 @@
 }
 
 @utility deal-glow {
-  box-shadow: 0 0 0 1px var(--color-deal), 0 0 32px -8px color-mix(in oklab, var(--color-deal) 60%, transparent);
+  box-shadow:
+    0 0 0 1px var(--color-deal),
+    0 0 32px -8px color-mix(in oklab, var(--color-deal) 60%, transparent);
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes slide-in-right {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 @keyframes hero-zoom {
-  from { transform: scale(1.08); }
-  to { transform: scale(1); }
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
-.animate-fade-up { animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-slide-in-right { animation: slide-in-right 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-hero-zoom { animation: hero-zoom 8s ease-out both; }
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-hero-zoom {
+  animation: hero-zoom 8s ease-out both;
+}

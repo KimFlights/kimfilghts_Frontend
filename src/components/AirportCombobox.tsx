@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { AIRPORTS, searchAirports, type Airport } from "@/domains/airports/data";
 
 interface Props {
@@ -22,7 +29,9 @@ export function AirportCombobox({ label, value, onChange }: Props) {
           type="button"
           className="flex w-full flex-col gap-1 bg-background/60 px-5 py-4 text-left transition hover:bg-background/80"
         >
-          <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
+          <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            {label}
+          </span>
           <span className="text-sm font-medium text-foreground">
             {selected ? `${selected.code} — ${selected.city}` : "Select airport"}
           </span>
@@ -30,7 +39,11 @@ export function AirportCombobox({ label, value, onChange }: Props) {
       </PopoverTrigger>
       <PopoverContent className="w-[320px] p-0 bg-card border-border" align="start">
         <Command shouldFilter={false}>
-          <CommandInput placeholder="City, region, or code…" value={query} onValueChange={setQuery} />
+          <CommandInput
+            placeholder="City, region, or code…"
+            value={query}
+            onValueChange={setQuery}
+          />
           <CommandList>
             <CommandEmpty>No airports found.</CommandEmpty>
             <CommandGroup>
@@ -47,7 +60,9 @@ export function AirportCombobox({ label, value, onChange }: Props) {
                 >
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{a.city}</span>
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{a.region} · {a.country}</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {a.region} · {a.country}
+                    </span>
                   </div>
                   <span className="text-xs font-mono text-muted-foreground">{a.code}</span>
                 </CommandItem>

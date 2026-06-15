@@ -48,7 +48,14 @@ interface Props {
   passengerNames: string[];
 }
 
-export function SeatMap({ seats, selected, currentPassenger, onSelect, passengerCount, passengerNames }: Props) {
+export function SeatMap({
+  seats,
+  selected,
+  currentPassenger,
+  onSelect,
+  passengerCount,
+  passengerNames,
+}: Props) {
   const rows = useMemo(() => {
     const map = new Map<number, Seat[]>();
     seats.forEach((s) => {
@@ -71,7 +78,9 @@ export function SeatMap({ seats, selected, currentPassenger, onSelect, passenger
             <div
               key={i}
               className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] ${
-                isCurrent ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground"
+                isCurrent
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-muted-foreground"
               }`}
             >
               <span>{passengerNames[i] || `P${i + 1}`}</span>
@@ -86,7 +95,9 @@ export function SeatMap({ seats, selected, currentPassenger, onSelect, passenger
         {(["business", "plus", "economy"] as SeatTier[]).map((t) => (
           <div key={t} className="flex items-center gap-2">
             <span className={`h-3 w-3 rounded border ${TIER_BORDER[t]} bg-background`} />
-            <span>{TIER_LABEL[t]} {SEAT_TIER_PRICE[t] > 0 ? `+$${SEAT_TIER_PRICE[t]}` : "—"}</span>
+            <span>
+              {TIER_LABEL[t]} {SEAT_TIER_PRICE[t] > 0 ? `+$${SEAT_TIER_PRICE[t]}` : "—"}
+            </span>
           </div>
         ))}
         <div className="flex items-center gap-2">
@@ -109,11 +120,23 @@ export function SeatMap({ seats, selected, currentPassenger, onSelect, passenger
                 <span className="w-5 text-right text-[9px] text-muted-foreground">{row}</span>
                 <div className="flex flex-1 items-center justify-center gap-1.5">
                   {left.map((s) => (
-                    <SeatBtn key={s.id} seat={s} selected={selectedSet.has(s.id)} isMine={selected[currentPassenger] === s.id} onSelect={onSelect} />
+                    <SeatBtn
+                      key={s.id}
+                      seat={s}
+                      selected={selectedSet.has(s.id)}
+                      isMine={selected[currentPassenger] === s.id}
+                      onSelect={onSelect}
+                    />
                   ))}
                   <span className="mx-2 w-3" />
                   {right.map((s) => (
-                    <SeatBtn key={s.id} seat={s} selected={selectedSet.has(s.id)} isMine={selected[currentPassenger] === s.id} onSelect={onSelect} />
+                    <SeatBtn
+                      key={s.id}
+                      seat={s}
+                      selected={selectedSet.has(s.id)}
+                      isMine={selected[currentPassenger] === s.id}
+                      onSelect={onSelect}
+                    />
                   ))}
                 </div>
               </div>
@@ -125,7 +148,17 @@ export function SeatMap({ seats, selected, currentPassenger, onSelect, passenger
   );
 }
 
-function SeatBtn({ seat, selected, isMine, onSelect }: { seat: Seat; selected: boolean; isMine: boolean; onSelect: (id: string) => void }) {
+function SeatBtn({
+  seat,
+  selected,
+  isMine,
+  onSelect,
+}: {
+  seat: Seat;
+  selected: boolean;
+  isMine: boolean;
+  onSelect: (id: string) => void;
+}) {
   const disabled = seat.occupied || (selected && !isMine);
   return (
     <button
@@ -136,10 +169,10 @@ function SeatBtn({ seat, selected, isMine, onSelect }: { seat: Seat; selected: b
         seat.occupied
           ? "border-border bg-muted/40 text-muted-foreground/50 cursor-not-allowed"
           : isMine
-          ? "border-foreground bg-foreground text-background"
-          : selected
-          ? "border-foreground/70 bg-foreground/30 text-foreground cursor-not-allowed"
-          : `${TIER_BORDER[seat.tier]} bg-background text-foreground hover:bg-foreground/10`
+            ? "border-foreground bg-foreground text-background"
+            : selected
+              ? "border-foreground/70 bg-foreground/30 text-foreground cursor-not-allowed"
+              : `${TIER_BORDER[seat.tier]} bg-background text-foreground hover:bg-foreground/10`
       }`}
       title={`${seat.id} · ${seat.tier}`}
     >

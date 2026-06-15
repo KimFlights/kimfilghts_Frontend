@@ -60,9 +60,15 @@ import { AIRPORTS, findAirport } from "@/domains/airports/data";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const AIRLINES = ["Aero", "Vega", "Nova Air", "Polaris", "Helio"];
-const rand = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const rand = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-function makeFlight(i: number, originCode: string, destinationCode: string, date: string, forceDeal = false): Flight {
+function makeFlight(
+  i: number,
+  originCode: string,
+  destinationCode: string,
+  date: string,
+  forceDeal = false,
+): Flight {
   const o = findAirport(originCode) ?? AIRPORTS[0];
   const d = findAirport(destinationCode) ?? AIRPORTS[1];
   const base = 280 + Math.floor(Math.random() * 600);
@@ -94,35 +100,133 @@ function makeFlight(i: number, originCode: string, destinationCode: string, date
   };
 }
 
-export async function fetchFlights(params: { origin: string; destination: string; date: string; passengers: number }): Promise<Flight[]> {
+export async function fetchFlights(params: {
+  origin: string;
+  destination: string;
+  date: string;
+  passengers: number;
+}): Promise<Flight[]> {
   await delay(800);
   const list: Flight[] = [];
-  for (let i = 0; i < 7; i++) list.push(makeFlight(i, params.origin, params.destination, params.date, i === 1));
+  for (let i = 0; i < 7; i++)
+    list.push(makeFlight(i, params.origin, params.destination, params.date, i === 1));
   return list.sort((a, b) => a.price - b.price);
 }
 
 const PAIRINGS: Record<string, SecondaryUpsell[]> = {
   CDG: [
-    { id: "sec-rome", city: "Rome", cityCode: "FCO", country: "Italy", imageUrl: paris, price: 64, averagePrice: 140, durationMinutes: 130, tagline: "Two capitals. One trip." },
-    { id: "sec-barcelona", city: "Barcelona", cityCode: "BCN", country: "Spain", imageUrl: paris, price: 79, averagePrice: 160, durationMinutes: 110, tagline: "Mediterranean detour." },
+    {
+      id: "sec-rome",
+      city: "Rome",
+      cityCode: "FCO",
+      country: "Italy",
+      imageUrl: paris,
+      price: 64,
+      averagePrice: 140,
+      durationMinutes: 130,
+      tagline: "Two capitals. One trip.",
+    },
+    {
+      id: "sec-barcelona",
+      city: "Barcelona",
+      cityCode: "BCN",
+      country: "Spain",
+      imageUrl: paris,
+      price: 79,
+      averagePrice: 160,
+      durationMinutes: 110,
+      tagline: "Mediterranean detour.",
+    },
   ],
   HND: [
-    { id: "sec-kyoto", city: "Kyoto", cityCode: "UKY", country: "Japan", imageUrl: tokyo, price: 48, averagePrice: 120, durationMinutes: 80, tagline: "Ancient capital, 80 minutes away." },
-    { id: "sec-osaka", city: "Osaka", cityCode: "KIX", country: "Japan", imageUrl: tokyo, price: 55, averagePrice: 130, durationMinutes: 90, tagline: "Street food paradise." },
+    {
+      id: "sec-kyoto",
+      city: "Kyoto",
+      cityCode: "UKY",
+      country: "Japan",
+      imageUrl: tokyo,
+      price: 48,
+      averagePrice: 120,
+      durationMinutes: 80,
+      tagline: "Ancient capital, 80 minutes away.",
+    },
+    {
+      id: "sec-osaka",
+      city: "Osaka",
+      cityCode: "KIX",
+      country: "Japan",
+      imageUrl: tokyo,
+      price: 55,
+      averagePrice: 130,
+      durationMinutes: 90,
+      tagline: "Street food paradise.",
+    },
   ],
   JFK: [
-    { id: "sec-boston", city: "Boston", cityCode: "BOS", country: "USA", imageUrl: nyc, price: 89, averagePrice: 180, durationMinutes: 90, tagline: "Add a New England weekend." },
-    { id: "sec-mtl", city: "Montreal", cityCode: "YUL", country: "Canada", imageUrl: nyc, price: 119, averagePrice: 240, durationMinutes: 100, tagline: "A taste of Europe in North America." },
+    {
+      id: "sec-boston",
+      city: "Boston",
+      cityCode: "BOS",
+      country: "USA",
+      imageUrl: nyc,
+      price: 89,
+      averagePrice: 180,
+      durationMinutes: 90,
+      tagline: "Add a New England weekend.",
+    },
+    {
+      id: "sec-mtl",
+      city: "Montreal",
+      cityCode: "YUL",
+      country: "Canada",
+      imageUrl: nyc,
+      price: 119,
+      averagePrice: 240,
+      durationMinutes: 100,
+      tagline: "A taste of Europe in North America.",
+    },
   ],
 };
 
 const RANDOM_CITIES: SecondaryUpsell[] = [
-  { id: "sec-lis", city: "Lisbon", cityCode: "LIS", country: "Portugal", imageUrl: paris, price: 72, averagePrice: 150, durationMinutes: 150, tagline: "Pastel sunsets on the Atlantic." },
-  { id: "sec-ist", city: "Istanbul", cityCode: "IST", country: "Türkiye", imageUrl: tokyo, price: 99, averagePrice: 210, durationMinutes: 180, tagline: "Where continents meet." },
-  { id: "sec-mex", city: "Mexico City", cityCode: "MEX", country: "Mexico", imageUrl: nyc, price: 128, averagePrice: 260, durationMinutes: 240, tagline: "Markets, murals, mezcal." },
+  {
+    id: "sec-lis",
+    city: "Lisbon",
+    cityCode: "LIS",
+    country: "Portugal",
+    imageUrl: paris,
+    price: 72,
+    averagePrice: 150,
+    durationMinutes: 150,
+    tagline: "Pastel sunsets on the Atlantic.",
+  },
+  {
+    id: "sec-ist",
+    city: "Istanbul",
+    cityCode: "IST",
+    country: "Türkiye",
+    imageUrl: tokyo,
+    price: 99,
+    averagePrice: 210,
+    durationMinutes: 180,
+    tagline: "Where continents meet.",
+  },
+  {
+    id: "sec-mex",
+    city: "Mexico City",
+    cityCode: "MEX",
+    country: "Mexico",
+    imageUrl: nyc,
+    price: 128,
+    averagePrice: 260,
+    durationMinutes: 240,
+    tagline: "Markets, murals, mezcal.",
+  },
 ];
 
-export async function fetchSecondaryConnections(destinationCode: string): Promise<SecondaryUpsell[]> {
+export async function fetchSecondaryConnections(
+  destinationCode: string,
+): Promise<SecondaryUpsell[]> {
   await delay(500);
   if (PAIRINGS[destinationCode]) return PAIRINGS[destinationCode];
   return [...RANDOM_CITIES].sort(() => Math.random() - 0.5).slice(0, 2);
@@ -135,6 +239,9 @@ export async function fetchPriceAlerts(flightId: string): Promise<PriceAlert | n
 
 export async function submitBooking(payload: BookingPayload): Promise<BookingResult> {
   await delay(900);
-  const pnr = Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]).join("");
+  const pnr = Array.from(
+    { length: 6 },
+    () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)],
+  ).join("");
   return { pnr, status: "confirmed", createdAt: new Date().toISOString() };
 }
