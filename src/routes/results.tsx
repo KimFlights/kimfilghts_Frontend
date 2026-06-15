@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { fetchFlights, fetchSecondaryConnections, type Flight, type SecondaryUpsell } from "@/services/flightMockApi";
+import {
+  fetchFlights,
+  fetchSecondaryConnections,
+  type Flight,
+  type SecondaryUpsell,
+} from "@/services/flightMockApi";
 import { itinerary } from "@/lib/itinerary";
 import { ConfigPanel } from "@/components/ConfigPanel";
 
@@ -20,7 +25,8 @@ export const Route = createFileRoute("/results")({
   component: Results,
 });
 
-const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const formatTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const formatDuration = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`;
 
 function Results() {
@@ -60,25 +66,53 @@ function Results() {
     <main className="min-h-screen bg-background pt-24 pb-24">
       <section className="mx-auto max-w-6xl px-6 md:px-12">
         <div className="animate-fade-up flex flex-col gap-2">
-          <Link to="/" className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground">← New search</Link>
+          <Link
+            to="/"
+            className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground"
+          >
+            ← New search
+          </Link>
           <h1 className="text-4xl font-light tracking-tight text-foreground md:text-5xl">
             {search.origin} <span className="text-muted-foreground">→</span> {search.destination}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {new Date(search.date).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })} · {search.passengers} guest{search.passengers > 1 ? "s" : ""}
+            {new Date(search.date).toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}{" "}
+            · {search.passengers} guest{search.passengers > 1 ? "s" : ""}
           </p>
         </div>
 
         <div className="mt-12 flex flex-col gap-3">
-          {flights === null && Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-xl border border-border bg-card" />)}
+          {flights === null &&
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-28 animate-pulse rounded-xl border border-border bg-card" />
+            ))}
           {flights?.map((f, i) => (
-            <FlightRow key={f.id} flight={f} index={i} isSelected={selected?.id === f.id} onSelect={() => handleSelect(f)} />
+            <FlightRow
+              key={f.id}
+              flight={f}
+              index={i}
+              isSelected={selected?.id === f.id}
+              onSelect={() => handleSelect(f)}
+            />
           ))}
         </div>
       </section>
 
       {showUpsell && selected && (
-        <UpsellSheet primary={selected} upsells={showUpsell} onSkip={skipUpsell} onPick={pickUpsell} onClose={() => { setShowUpsell(null); setSelected(null); }} />
+        <UpsellSheet
+          primary={selected}
+          upsells={showUpsell}
+          onSkip={skipUpsell}
+          onPick={pickUpsell}
+          onClose={() => {
+            setShowUpsell(null);
+            setSelected(null);
+          }}
+        />
       )}
 
       {configOpen && selected && (
@@ -88,7 +122,17 @@ function Results() {
   );
 }
 
-function FlightRow({ flight, index, isSelected, onSelect }: { flight: Flight; index: number; isSelected: boolean; onSelect: () => void }) {
+function FlightRow({
+  flight,
+  index,
+  isSelected,
+  onSelect,
+}: {
+  flight: Flight;
+  index: number;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
   return (
     <div
       className={`group animate-fade-up grid grid-cols-12 items-center gap-4 rounded-xl border bg-card p-6 transition-all duration-500 ${
@@ -97,33 +141,56 @@ function FlightRow({ flight, index, isSelected, onSelect }: { flight: Flight; in
       style={{ animationDelay: `${index * 60}ms` }}
     >
       <div className="col-span-12 flex items-center gap-3 md:col-span-2">
-        <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{flight.airline}</div>
+        <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          {flight.airline}
+        </div>
         <div className="text-[10px] text-muted-foreground">{flight.flightNumber}</div>
       </div>
       <div className="col-span-12 flex items-center gap-6 md:col-span-6">
         <div>
           <div className="text-2xl font-light text-foreground">{formatTime(flight.departTime)}</div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{flight.originCode}</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {flight.originCode}
+          </div>
         </div>
         <div className="flex flex-1 flex-col items-center">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{formatDuration(flight.durationMinutes)}</div>
-          <div className="relative my-2 h-px w-full bg-border"><div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-foreground" /></div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{flight.stops === 0 ? "Nonstop" : `${flight.stops} stop`}</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {formatDuration(flight.durationMinutes)}
+          </div>
+          <div className="relative my-2 h-px w-full bg-border">
+            <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-foreground" />
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {flight.stops === 0 ? "Nonstop" : `${flight.stops} stop`}
+          </div>
         </div>
         <div className="text-right">
           <div className="text-2xl font-light text-foreground">{formatTime(flight.arriveTime)}</div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{flight.destinationCode}</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {flight.destinationCode}
+          </div>
         </div>
       </div>
       <div className="col-span-12 flex items-center justify-between gap-4 md:col-span-4 md:justify-end">
         <div className="flex flex-col items-end">
-          {flight.isDeal && <span className="mb-1 rounded-full bg-deal/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-deal">{flight.dealLabel}</span>}
+          {flight.isDeal && (
+            <span className="mb-1 rounded-full bg-deal/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-deal">
+              {flight.dealLabel}
+            </span>
+          )}
           <div className="flex items-baseline gap-2">
-            {flight.isDeal && <span className="text-xs text-muted-foreground line-through">${flight.averagePrice}</span>}
+            {flight.isDeal && (
+              <span className="text-xs text-muted-foreground line-through">
+                ${flight.averagePrice}
+              </span>
+            )}
             <span className="text-3xl font-light text-foreground">${flight.price}</span>
           </div>
         </div>
-        <button onClick={onSelect} className="rounded-full bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-background transition hover:opacity-90">
+        <button
+          onClick={onSelect}
+          className="rounded-full bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-background transition hover:opacity-90"
+        >
           Select
         </button>
       </div>
@@ -131,7 +198,19 @@ function FlightRow({ flight, index, isSelected, onSelect }: { flight: Flight; in
   );
 }
 
-function UpsellSheet({ primary, upsells, onSkip, onPick, onClose }: { primary: Flight; upsells: SecondaryUpsell[]; onSkip: () => void; onPick: (u: SecondaryUpsell) => void; onClose: () => void }) {
+function UpsellSheet({
+  primary,
+  upsells,
+  onSkip,
+  onPick,
+  onClose,
+}: {
+  primary: Flight;
+  upsells: SecondaryUpsell[];
+  onSkip: () => void;
+  onPick: (u: SecondaryUpsell) => void;
+  onClose: () => void;
+}) {
   return (
     <>
       <div className="fixed inset-0 z-40 bg-background/70 backdrop-blur-md" onClick={onClose} />
@@ -139,23 +218,37 @@ function UpsellSheet({ primary, upsells, onSkip, onPick, onClose }: { primary: F
         <div className="border-b border-border p-6">
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Optional</p>
           <h2 className="mt-1 text-2xl font-light text-foreground">Add a second city?</h2>
-          <p className="mt-2 text-xs text-muted-foreground">Travelers to {primary.destination} often add a nearby city for less.</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Travelers to {primary.destination} often add a nearby city for less.
+          </p>
         </div>
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {upsells.map((u) => (
-            <button key={u.id} onClick={() => onPick(u)} className="group block w-full overflow-hidden rounded-xl border border-border text-left transition hover:border-foreground/40">
+            <button
+              key={u.id}
+              onClick={() => onPick(u)}
+              className="group block w-full overflow-hidden rounded-xl border border-border text-left transition hover:border-foreground/40"
+            >
               <div className="relative h-32 w-full overflow-hidden">
-                <img src={u.imageUrl} alt={u.city} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                <img
+                  src={u.imageUrl}
+                  alt={u.city}
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
               </div>
               <div className="flex items-end justify-between p-4">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{u.country}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    {u.country}
+                  </p>
                   <p className="text-lg font-medium text-foreground">{u.city}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{u.tagline}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">From</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    From
+                  </p>
                   <p className="text-xl font-light text-foreground">+${u.price}</p>
                 </div>
               </div>
@@ -163,7 +256,10 @@ function UpsellSheet({ primary, upsells, onSkip, onPick, onClose }: { primary: F
           ))}
         </div>
         <div className="border-t border-border p-6">
-          <button onClick={onSkip} className="w-full rounded-full border border-border py-4 text-[10px] font-semibold uppercase tracking-[0.25em] text-foreground hover:bg-accent">
+          <button
+            onClick={onSkip}
+            className="w-full rounded-full border border-border py-4 text-[10px] font-semibold uppercase tracking-[0.25em] text-foreground hover:bg-accent"
+          >
             Skip — continue with primary
           </button>
         </div>

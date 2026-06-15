@@ -50,11 +50,17 @@ export const itinerary = {
     emit();
   },
   updatePassenger(i: number, patch: Partial<PassengerDetails>) {
-    state = { ...state, passengers: state.passengers.map((p, idx) => (idx === i ? { ...p, ...patch } : p)) };
+    state = {
+      ...state,
+      passengers: state.passengers.map((p, idx) => (idx === i ? { ...p, ...patch } : p)),
+    };
     emit();
   },
   updateAddon(i: number, patch: Partial<PassengerAddons>) {
-    state = { ...state, addons: state.addons.map((a, idx) => (idx === i ? { ...a, ...patch } : a)) };
+    state = {
+      ...state,
+      addons: state.addons.map((a, idx) => (idx === i ? { ...a, ...patch } : a)),
+    };
     emit();
   },
   setSeat(i: number, seatId: string | null) {
@@ -89,7 +95,7 @@ export function useItinerary() {
   return useSyncExternalStore(
     (cb) => itinerary.subscribe(cb),
     () => itinerary.get(),
-    () => itinerary.get()
+    () => itinerary.get(),
   );
 }
 
@@ -102,7 +108,7 @@ export function computeTotals(s: BookingState, seatTierOf: (id: string | null) =
       (a.carryOn ? ADDON_PRICES.carryOn : 0) +
       (a.checkedBag ? ADDON_PRICES.checkedBag : 0) +
       (a.priority ? ADDON_PRICES.priority : 0),
-    0
+    0,
   );
   const seatsTotal = s.seats.reduce((sum, id) => {
     const t = seatTierOf(id);
@@ -113,6 +119,8 @@ export function computeTotals(s: BookingState, seatTierOf: (id: string | null) =
   const total = subtotal + taxes;
   const savings =
     Math.max(0, ((s.primary?.averagePrice ?? 0) - (s.primary?.price ?? 0)) * s.passengerCount) +
-    (s.secondary ? Math.max(0, (s.secondary.averagePrice - s.secondary.price) * s.passengerCount) : 0);
+    (s.secondary
+      ? Math.max(0, (s.secondary.averagePrice - s.secondary.price) * s.passengerCount)
+      : 0);
   return { flightTotal, addonsTotal, seatsTotal, subtotal, taxes, total, savings };
 }

@@ -55,7 +55,13 @@ export function generatePnr(): string {
 }
 
 export function defaultPassenger(i: number): PassengerDetails {
-  return { id: `p-${i}-${Math.random().toString(36).slice(2, 7)}`, type: i === 0 ? "adult" : "adult", firstName: "", lastName: "", dob: "" };
+  return {
+    id: `p-${i}-${Math.random().toString(36).slice(2, 7)}`,
+    type: i === 0 ? "adult" : "adult",
+    firstName: "",
+    lastName: "",
+    dob: "",
+  };
 }
 export function defaultAddons(): PassengerAddons {
   return { carryOn: true, checkedBag: false, priority: false };
