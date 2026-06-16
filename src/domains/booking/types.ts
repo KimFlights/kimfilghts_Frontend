@@ -37,13 +37,15 @@ export interface Seat {
   occupied: boolean;
 }
 
+export type SegmentKey = "primary" | "connecting";
+
 export interface BookingState {
   primary: Flight | null;
   secondary: SecondaryUpsell | null;
   passengerCount: number;
   passengers: PassengerDetails[];
   addons: PassengerAddons[];
-  seats: (string | null)[];
+  selectedSeats: Record<SegmentKey, (string | null)[]>;
   pnr: string | null;
 }
 

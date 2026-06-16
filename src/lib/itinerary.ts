@@ -10,6 +10,7 @@ import {
   type PassengerAddons,
   type PassengerDetails,
   type SeatTier,
+  type SegmentKey,
 } from "@/domains/booking/types";
 
 const STORAGE_KEY = "kf:itinerary";
@@ -20,7 +21,7 @@ const initialState: BookingState = {
   passengerCount: 1,
   passengers: [defaultPassenger(0)],
   addons: [defaultAddons()],
-  seats: [null],
+  selectedSeats: { primary: [null], connecting: [null] },
   pnr: null,
 };
 
@@ -29,7 +30,16 @@ function loadState(): BookingState {
   try {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return initialState;
-    return { ...initialState, ...JSON.parse(raw) } as BookingState;
+    const parsed = JSON.parse(raw);
+    // Backward-compat: migrate old flat `seats` array.
+    if (parsed && Array.isArray(parsed.seats) && !parsed.selectedSeats) {
+      parsed.selectedSeats = {
+        primary: parsed.seats,
+        connecting: parsed.seats.map(() => null),
+      };
+      delete parsed.seats;
+    }
+    return { ...initialState, ...parsed } as BookingState;
   } catch {
     return initialState;
   }
@@ -55,6 +65,16 @@ function resize<T>(arr: T[], n: number, make: (i: number) => T): T[] {
   return [...arr, ...Array.from({ length: n - arr.length }, (_, i) => make(arr.length + i))];
 }
 
+function resizeSeats(
+  seats: Record<SegmentKey, (string | null)[]>,
+  n: number,
+): Record<SegmentKey, (string | null)[]> {
+  return {
+    primary: resize(seats.primary, n, () => null),
+    connecting: resize(seats.connecting, n, () => null),
+  };
+}
+
 export const itinerary = {
   get: () => state,
   setPrimary(f: Flight | null, passengerCount?: number) {
@@ -65,12 +85,20 @@ export const itinerary = {
       passengerCount: count,
       passengers: resize(state.passengers, count, defaultPassenger),
       addons: resize(state.addons, count, defaultAddons),
-      seats: resize(state.seats, count, () => null),
+      selectedSeats: resizeSeats(state.selectedSeats, count),
     };
     emit();
   },
   setSecondary(s: SecondaryUpsell | null) {
-    state = { ...state, secondary: s };
+    // Purge connecting seats whenever the secondary leg changes or is removed.
+    state = {
+      ...state,
+      secondary: s,
+      selectedSeats: {
+        ...state.selectedSeats,
+        connecting: state.selectedSeats.connecting.map(() => null),
+      },
+    };
     emit();
   },
   updatePassenger(i: number, patch: Partial<PassengerDetails>) {
@@ -87,8 +115,24 @@ export const itinerary = {
     };
     emit();
   },
-  setSeat(i: number, seatId: string | null) {
-    state = { ...state, seats: state.seats.map((s, idx) => (idx === i ? seatId : s)) };
+  setSeat(segment: SegmentKey, i: number, seatId: string | null) {
+    state = {
+      ...state,
+      selectedSeats: {
+        ...state.selectedSeats,
+        [segment]: state.selectedSeats[segment].map((s, idx) => (idx === i ? seatId : s)),
+      },
+    };
+    emit();
+  },
+  clearSegmentSeats(segment: SegmentKey) {
+    state = {
+      ...state,
+      selectedSeats: {
+        ...state.selectedSeats,
+        [segment]: state.selectedSeats[segment].map(() => null),
+      },
+    };
     emit();
   },
   confirm(): string {
@@ -104,7 +148,7 @@ export const itinerary = {
       passengerCount: 1,
       passengers: [defaultPassenger(0)],
       addons: [defaultAddons()],
-      seats: [null],
+      selectedSeats: { primary: [null], connecting: [null] },
       pnr: null,
     };
     emit();
@@ -136,10 +180,13 @@ export function computeTotals(s: BookingState, seatTierOf: (id: string | null) =
       (a.priority ? ADDON_PRICES.priority : 0),
     0,
   );
-  const seatsTotal = s.seats.reduce((sum, id) => {
-    const t = seatTierOf(id);
-    return sum + (t ? SEAT_TIER_PRICE[t] : 0);
-  }, 0);
+  const sumSeats = (arr: (string | null)[]) =>
+    arr.reduce((sum, id) => {
+      const t = seatTierOf(id);
+      return sum + (t ? SEAT_TIER_PRICE[t] : 0);
+    }, 0);
+  const seatsTotal =
+    sumSeats(s.selectedSeats.primary) + (s.secondary ? sumSeats(s.selectedSeats.connecting) : 0);
   const subtotal = flightTotal + addonsTotal + seatsTotal;
   const taxes = Math.round(subtotal * 0.12);
   const total = subtotal + taxes;

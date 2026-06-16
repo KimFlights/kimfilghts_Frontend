@@ -70,7 +70,10 @@ function Checkout() {
       secondaryId: secondary?.id ?? null,
       passengers: state.passengers,
       addons: state.addons,
-      seats: state.seats,
+      seats: {
+        primary: state.selectedSeats.primary,
+        connecting: secondary ? state.selectedSeats.connecting : [],
+      },
       total: totals.total,
       contact: { email: contact.email, phone: contact.phone },
     });
@@ -187,26 +190,46 @@ function Checkout() {
                 )}
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border pt-4">
+              <div className="mt-4 space-y-3 border-t border-border pt-4">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  Passengers
+                  Passengers & seats
                 </p>
                 {state.passengers.map((p, i) => {
                   const a = state.addons[i];
-                  const tier = inferTier(state.seats[i]);
+                  const primarySeat = state.selectedSeats.primary[i];
+                  const connectingSeat = secondary ? state.selectedSeats.connecting[i] : null;
+                  const seatCharge =
+                    (inferTier(primarySeat) ? SEAT_TIER_PRICE[inferTier(primarySeat)!] : 0) +
+                    (inferTier(connectingSeat) ? SEAT_TIER_PRICE[inferTier(connectingSeat)!] : 0);
                   return (
-                    <div key={p.id} className="flex justify-between text-xs text-muted-foreground">
-                      <span>
-                        {p.firstName || `P${i + 1}`} · Seat {state.seats[i] ?? "—"}
-                      </span>
-                      <span>
-                        $
-                        {(
-                          (a.checkedBag ? ADDON_PRICES.checkedBag : 0) +
-                          (a.priority ? ADDON_PRICES.priority : 0) +
-                          (tier ? SEAT_TIER_PRICE[tier] : 0)
-                        ).toLocaleString()}
-                      </span>
+                    <div key={p.id} className="text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span className="text-foreground">
+                          {p.firstName || `Passenger ${i + 1}`} {p.lastName}
+                        </span>
+                        <span>
+                          $
+                          {(
+                            (a.checkedBag ? ADDON_PRICES.checkedBag : 0) +
+                            (a.priority ? ADDON_PRICES.priority : 0) +
+                            seatCharge
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex justify-between font-mono text-[10px]">
+                        <span>
+                          {primary.originCode}→{primary.destinationCode}
+                        </span>
+                        <span>Seat {primarySeat ?? "—"}</span>
+                      </div>
+                      {secondary && (
+                        <div className="flex justify-between font-mono text-[10px]">
+                          <span>
+                            {primary.destinationCode}→{secondary.cityCode}
+                          </span>
+                          <span>Seat {connectingSeat ?? "—"}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

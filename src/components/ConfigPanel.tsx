@@ -1,9 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type { Flight, SecondaryUpsell } from "@/services/flightMockApi";
 import { itinerary, useItinerary, computeTotals } from "@/lib/itinerary";
-import { ADDON_PRICES, SEAT_TIER_PRICE, type SeatTier } from "@/domains/booking/types";
+import {
+  ADDON_PRICES,
+  SEAT_TIER_PRICE,
+  type SeatTier,
+  type SegmentKey,
+} from "@/domains/booking/types";
 import { SeatMap, generateSeats } from "@/components/SeatMap";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Check, Briefcase, Luggage, Zap, X } from "lucide-react";
 
 interface Props {
@@ -19,26 +25,46 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [currentSeat, setCurrentSeat] = useState(0);
-  const seats = useMemo(() => generateSeats(), []);
+  const [activeSegment, setActiveSegment] = useState<SegmentKey>("primary");
+
+  // Independent seat maps per segment.
+  const primarySeats = useMemo(() => generateSeats(), []);
+  const connectingSeats = useMemo(() => generateSeats(), []);
+  const seatsBySegment: Record<SegmentKey, ReturnType<typeof generateSeats>> = {
+    primary: primarySeats,
+    connecting: connectingSeats,
+  };
+
   const seatTierOf = (id: string | null): SeatTier | null => {
     if (!id) return null;
-    return seats.find((s) => s.id === id)?.tier ?? null;
+    // Search both maps — seat ids ("12A") may overlap between segments.
+    const hit = primarySeats.find((s) => s.id === id) ?? connectingSeats.find((s) => s.id === id);
+    return hit?.tier ?? null;
   };
   const totals = computeTotals(state, seatTierOf);
 
   const passengersValid = state.passengers.every(
     (p) => p.firstName.trim() && p.lastName.trim() && p.dob,
   );
-  const seatsValid = state.seats.every((s) => s !== null);
+  const primarySeatsValid = state.selectedSeats.primary.every((s) => s !== null);
+  const connectingSeatsValid =
+    !secondary || state.selectedSeats.connecting.every((s) => s !== null);
+  const seatsValid = primarySeatsValid && connectingSeatsValid;
   const canNext = step === 0 ? passengersValid : step === 1 ? true : seatsValid;
 
+  // Reset passenger focus whenever the user switches segment tabs.
+  useEffect(() => {
+    setCurrentSeat(0);
+  }, [activeSegment]);
+
   const handleSeatSelect = (seatId: string) => {
-    if (state.seats[currentSeat] === seatId) {
-      itinerary.setSeat(currentSeat, null);
+    const current = state.selectedSeats[activeSegment];
+    if (current[currentSeat] === seatId) {
+      itinerary.setSeat(activeSegment, currentSeat, null);
       return;
     }
-    itinerary.setSeat(currentSeat, seatId);
-    const next = state.seats.findIndex((s, i) => i !== currentSeat && !s);
+    itinerary.setSeat(activeSegment, currentSeat, seatId);
+    const next = current.findIndex((s, i) => i !== currentSeat && !s);
     if (next >= 0) setCurrentSeat(next);
   };
 
@@ -49,6 +75,18 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
       navigate({ to: "/checkout" });
     }
   };
+
+  const renderSeatMap = (segment: SegmentKey) => (
+    <SeatMap
+      seats={seatsBySegment[segment]}
+      selected={state.selectedSeats[segment]}
+      currentPassenger={currentSeat}
+      onSelect={handleSeatSelect}
+      onPassengerChange={setCurrentSeat}
+      passengerCount={state.passengerCount}
+      passengerNames={state.passengers.map((p) => p.firstName || `P`)}
+    />
+  );
 
   return (
     <>
@@ -167,17 +205,33 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
             </div>
           )}
 
-          {step === 2 && (
-            <SeatMap
-              seats={seats}
-              selected={state.seats}
-              currentPassenger={currentSeat}
-              onSelect={handleSeatSelect}
-              onPassengerChange={setCurrentSeat}
-              passengerCount={state.passengerCount}
-              passengerNames={state.passengers.map((p) => p.firstName || `P`)}
-            />
-          )}
+          {step === 2 &&
+            (secondary ? (
+              <Tabs
+                value={activeSegment}
+                onValueChange={(v) => setActiveSegment(v as SegmentKey)}
+                className="w-full"
+              >
+                <TabsList className="mb-6 w-full">
+                  <TabsTrigger
+                    value="primary"
+                    className="flex-1 text-[10px] uppercase tracking-[0.2em]"
+                  >
+                    Flight 1 · {primary.originCode} → {primary.destinationCode}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="connecting"
+                    className="flex-1 text-[10px] uppercase tracking-[0.2em]"
+                  >
+                    Flight 2 · {primary.destinationCode} → {secondary.cityCode}
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="primary">{renderSeatMap("primary")}</TabsContent>
+                <TabsContent value="connecting">{renderSeatMap("connecting")}</TabsContent>
+              </Tabs>
+            ) : (
+              renderSeatMap("primary")
+            ))}
         </div>
 
         {/* Footer */}
