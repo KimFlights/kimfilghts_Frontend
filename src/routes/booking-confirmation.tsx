@@ -55,9 +55,9 @@ function Confirmation() {
           <BoardingCard
             label="Flight 1"
             from={primary.originCode}
-            to={primary.destinationCode}
+            to={secondary ? secondary.cityCode : primary.destinationCode}
             fromCity={primary.origin}
-            toCity={primary.destination}
+            toCity={secondary ? secondary.city : primary.destination}
             time={fmt(primary.departTime)}
             flightNo={primary.flightNumber}
             aircraft={primary.aircraft?.model ?? "—"}
@@ -71,10 +71,10 @@ function Confirmation() {
           {secondary && (
             <BoardingCard
               label="Flight 2"
-              from={primary.destinationCode}
-              to={secondary.cityCode}
-              fromCity={primary.destination}
-              toCity={secondary.city}
+              from={secondary.cityCode}
+              to={primary.destinationCode}
+              fromCity={secondary.city}
+              toCity={primary.destination}
               time="Connection"
               flightNo="—"
               aircraft="Connecting service"

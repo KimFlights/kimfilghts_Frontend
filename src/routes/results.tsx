@@ -46,12 +46,14 @@ function Results() {
 
   const handleSelect = async (f: Flight) => {
     setSelected(f);
+    setUpsell(null);
     itinerary.setPrimary(f, search.passengers);
     const list = await fetchSecondaryConnections(search.destination);
     setShowUpsell(list);
   };
 
   const skipUpsell = () => {
+    setUpsell(null);
     itinerary.setSecondary(null);
     setShowUpsell(null);
     setConfigOpen(true);
@@ -118,7 +120,17 @@ function Results() {
       )}
 
       {configOpen && selected && (
-        <ConfigPanel primary={selected} secondary={upsell} onClose={() => setConfigOpen(false)} />
+        <ConfigPanel
+          primary={selected}
+          secondary={upsell}
+          onClose={() => {
+            setConfigOpen(false);
+            setSelected(null);
+            setUpsell(null);
+            itinerary.clearSegmentSeats("primary");
+            itinerary.clearSegmentSeats("connecting");
+          }}
+        />
       )}
     </main>
   );

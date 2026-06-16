@@ -175,14 +175,18 @@ function Checkout() {
 
               <div className="mt-6 space-y-4 border-t border-border pt-4">
                 <SummaryLine
-                  label={`${primary.originCode} → ${primary.destinationCode}`}
+                  label={
+                    secondary
+                      ? `${primary.originCode} → ${secondary.cityCode}`
+                      : `${primary.originCode} → ${primary.destinationCode}`
+                  }
                   detail={`${formatTime(primary.departTime)} · ${primary.airline}`}
                   value={`$${(primary.price * state.passengerCount).toLocaleString()}`}
                   sub={`${state.passengerCount} × $${primary.price}`}
                 />
                 {secondary && (
                   <SummaryLine
-                    label={`${primary.destinationCode} → ${secondary.cityCode}`}
+                    label={`${secondary.cityCode} → ${primary.destinationCode}`}
                     detail={`Connection · ${secondary.city}`}
                     value={`$${(secondary.price * state.passengerCount).toLocaleString()}`}
                     sub={`${state.passengerCount} × $${secondary.price}`}
@@ -218,14 +222,16 @@ function Checkout() {
                       </div>
                       <div className="mt-1 flex justify-between font-mono text-[10px]">
                         <span>
-                          {primary.originCode}→{primary.destinationCode}
+                          {secondary
+                            ? `${primary.originCode}→${secondary.cityCode}`
+                            : `${primary.originCode}→${primary.destinationCode}`}
                         </span>
                         <span>Seat {primarySeat ?? "—"}</span>
                       </div>
                       {secondary && (
                         <div className="flex justify-between font-mono text-[10px]">
                           <span>
-                            {primary.destinationCode}→{secondary.cityCode}
+                            {secondary.cityCode}→{primary.destinationCode}
                           </span>
                           <span>Seat {connectingSeat ?? "—"}</span>
                         </div>

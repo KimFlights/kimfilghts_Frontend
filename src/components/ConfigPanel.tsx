@@ -99,8 +99,8 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
               Configure
             </p>
             <h2 className="mt-1 text-2xl font-light text-foreground">
-              {primary.originCode} → {primary.destinationCode}
-              {secondary ? ` → ${secondary.cityCode}` : ""}
+              {primary.originCode} → {secondary ? `${secondary.cityCode} → ` : ""}
+              {primary.destinationCode}
             </h2>
             <div className="mt-3 flex items-center gap-2">
               {STEPS.map((s, i) => (
@@ -217,13 +217,13 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
                     value="primary"
                     className="flex-1 text-[10px] uppercase tracking-[0.2em]"
                   >
-                    Flight 1 · {primary.originCode} → {primary.destinationCode}
+                    Flight 1 · {primary.originCode} → {secondary.cityCode}
                   </TabsTrigger>
                   <TabsTrigger
                     value="connecting"
                     className="flex-1 text-[10px] uppercase tracking-[0.2em]"
                   >
-                    Flight 2 · {primary.destinationCode} → {secondary.cityCode}
+                    Flight 2 · {secondary.cityCode} → {primary.destinationCode}
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="primary">{renderSeatMap("primary")}</TabsContent>
