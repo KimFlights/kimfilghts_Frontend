@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { ChevronDown } from "lucide-react";
 import {
   fetchFlights,
   fetchSecondaryConnections,
@@ -9,6 +10,11 @@ import {
 } from "@/services/flightMockApi";
 import { itinerary } from "@/lib/itinerary";
 import { ConfigPanel } from "@/components/ConfigPanel";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const searchSchema = z.object({
   origin: z.string().default("JFK"),
@@ -133,67 +139,99 @@ function FlightRow({
   isSelected: boolean;
   onSelect: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   return (
     <div
-      className={`group animate-fade-up grid grid-cols-12 items-center gap-4 rounded-xl border bg-card p-6 transition-all duration-500 ${
+      className={`group animate-fade-up rounded-xl border bg-card p-6 transition-all duration-500 ${
         flight.isDeal ? "deal-glow border-transparent" : "border-border hover:border-foreground/30"
       } ${isSelected ? "ring-2 ring-foreground" : ""}`}
       style={{ animationDelay: `${index * 60}ms` }}
     >
-      <div className="col-span-12 flex items-center gap-3 md:col-span-2">
-        <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          {flight.airline}
+      <div className="grid grid-cols-12 items-center gap-4">
+        <div className="col-span-12 flex items-center gap-3 md:col-span-2">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            {flight.airline}
+          </div>
+          <div className="text-[10px] text-muted-foreground">{flight.flightNumber}</div>
         </div>
-        <div className="text-[10px] text-muted-foreground">{flight.flightNumber}</div>
-      </div>
-      <div className="col-span-12 flex items-center gap-6 md:col-span-6">
-        <div>
-          <div className="text-2xl font-light text-foreground">{formatTime(flight.departTime)}</div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {flight.originCode}
+        <div className="col-span-12 flex items-center gap-6 md:col-span-6">
+          <div>
+            <div className="text-2xl font-light text-foreground">
+              {formatTime(flight.departTime)}
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {flight.originCode}
+            </div>
+          </div>
+          <div className="flex flex-1 flex-col items-center">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {formatDuration(flight.durationMinutes)}
+            </div>
+            <div className="relative my-2 h-px w-full bg-border">
+              <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-foreground" />
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {flight.stops === 0 ? "Nonstop" : `${flight.stops} stop`}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-light text-foreground">
+              {formatTime(flight.arriveTime)}
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {flight.destinationCode}
+            </div>
           </div>
         </div>
-        <div className="flex flex-1 flex-col items-center">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {formatDuration(flight.durationMinutes)}
-          </div>
-          <div className="relative my-2 h-px w-full bg-border">
-            <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-foreground" />
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {flight.stops === 0 ? "Nonstop" : `${flight.stops} stop`}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-light text-foreground">{formatTime(flight.arriveTime)}</div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {flight.destinationCode}
-          </div>
-        </div>
-      </div>
-      <div className="col-span-12 flex items-center justify-between gap-4 md:col-span-4 md:justify-end">
-        <div className="flex flex-col items-end">
-          {flight.isDeal && (
-            <span className="mb-1 rounded-full bg-deal/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-deal">
-              {flight.dealLabel}
-            </span>
-          )}
-          <div className="flex items-baseline gap-2">
+        <div className="col-span-12 flex items-center justify-between gap-4 md:col-span-4 md:justify-end">
+          <div className="flex flex-col items-end">
             {flight.isDeal && (
-              <span className="text-xs text-muted-foreground line-through">
-                ${flight.averagePrice}
+              <span className="mb-1 rounded-full bg-deal/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-deal">
+                {flight.dealLabel}
               </span>
             )}
-            <span className="text-3xl font-light text-foreground">${flight.price}</span>
+            <div className="flex items-baseline gap-2">
+              {flight.isDeal && (
+                <span className="text-xs text-muted-foreground line-through">
+                  ${flight.averagePrice}
+                </span>
+              )}
+              <span className="text-3xl font-light text-foreground">${flight.price}</span>
+            </div>
           </div>
+          <button
+            onClick={onSelect}
+            className="rounded-full bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-background transition hover:opacity-90"
+          >
+            Select
+          </button>
         </div>
-        <button
-          onClick={onSelect}
-          className="rounded-full bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-background transition hover:opacity-90"
-        >
-          Select
-        </button>
       </div>
+
+      <Collapsible open={open} onOpenChange={setOpen} className="mt-4">
+        <CollapsibleTrigger className="group/trigger flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground transition hover:text-foreground">
+          Flight Details
+          <ChevronDown
+            className={`h-3 w-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+          <div className="mt-4 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
+            <DetailCell label="Aircraft" value={flight.aircraft.model} />
+            <DetailCell label="Legroom" value={`${flight.aircraft.legroomInches} inches`} />
+            <DetailCell label="Baggage" value={flight.aircraft.baggage} />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
+}
+
+function DetailCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-card p-4">
+      <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">{label}</p>
+      <p className="mt-2 text-sm font-light text-foreground">{value}</p>
     </div>
   );
 }

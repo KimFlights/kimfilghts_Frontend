@@ -173,6 +173,7 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
               selected={state.seats}
               currentPassenger={currentSeat}
               onSelect={handleSeatSelect}
+              onPassengerChange={setCurrentSeat}
               passengerCount={state.passengerCount}
               passengerNames={state.passengers.map((p) => p.firstName || `P`)}
             />

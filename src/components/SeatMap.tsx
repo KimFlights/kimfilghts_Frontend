@@ -44,6 +44,7 @@ interface Props {
   selected: (string | null)[];
   currentPassenger: number;
   onSelect: (seatId: string) => void;
+  onPassengerChange?: (i: number) => void;
   passengerCount: number;
   passengerNames: string[];
 }
@@ -53,6 +54,7 @@ export function SeatMap({
   selected,
   currentPassenger,
   onSelect,
+  onPassengerChange,
   passengerCount,
   passengerNames,
 }: Props) {
@@ -75,17 +77,19 @@ export function SeatMap({
           const isCurrent = i === currentPassenger;
           const seat = selected[i];
           return (
-            <div
+            <button
+              type="button"
               key={i}
-              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] ${
+              onClick={() => onPassengerChange?.(i)}
+              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] transition ${
                 isCurrent
                   ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground"
+                  : "border-border text-muted-foreground hover:border-foreground/50 hover:text-foreground"
               }`}
             >
               <span>{passengerNames[i] || `P${i + 1}`}</span>
               <span className="font-mono">{seat ?? "—"}</span>
-            </div>
+            </button>
           );
         })}
       </div>

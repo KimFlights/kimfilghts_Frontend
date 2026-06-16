@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { useAuth } from "@/lib/auth";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -116,12 +117,16 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function Nav() {
+  const { user, isAuthenticated, logout } = useAuth();
+
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <nav className="flex items-center justify-between px-6 py-5 md:px-12">
-        <Link to="/" className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground">
-          KIMFLIGHTS
-        </Link>
+        <div className="flex-1">
+          <Link to="/" className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground">
+            KIMFLIGHTS
+          </Link>
+        </div>
         <div className="hidden gap-8 md:flex">
           <Link
             to="/"
@@ -142,12 +147,28 @@ function Nav() {
             Members
           </Link>
         </div>
-        <Link
-          to="/login"
-          className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
-        >
-          Sign in
-        </Link>
+        <div className="flex-1 flex justify-end">
+          {isAuthenticated && user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">
+                Hello, {user.username}
+              </span>
+              <button
+                onClick={() => logout()}
+                className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       </nav>
     </header>
   );
