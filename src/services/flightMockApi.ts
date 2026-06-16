@@ -58,7 +58,7 @@ export interface BookingPayload {
   secondaryId: string | null;
   passengers: Array<{ firstName: string; lastName: string; dob: string; type: string }>;
   addons: Array<{ carryOn: boolean; checkedBag: boolean; priority: boolean }>;
-  seats: (string | null)[];
+  seats: { primary: (string | null)[]; connecting: (string | null)[] };
   total: number;
   contact: { email: string; phone: string };
 }

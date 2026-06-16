@@ -10,11 +10,7 @@ import {
 } from "@/services/flightMockApi";
 import { itinerary } from "@/lib/itinerary";
 import { ConfigPanel } from "@/components/ConfigPanel";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const searchSchema = z.object({
   origin: z.string().default("JFK"),

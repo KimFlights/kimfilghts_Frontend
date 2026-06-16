@@ -18,7 +18,7 @@ const fmt = (iso: string) =>
 
 function Confirmation() {
   const state = useItinerary();
-  const { primary, secondary, pnr, passengers, seats } = state;
+  const { primary, secondary, pnr, passengers, selectedSeats } = state;
 
   if (!primary || !pnr) {
     return (
@@ -51,67 +51,40 @@ function Confirmation() {
           </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-[1.4fr_1fr]">
-          <div
-            className="animate-fade-up rounded-2xl border border-border bg-card p-8"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-              Itinerary
-            </p>
+        <div className="mt-16 space-y-6">
+          <BoardingCard
+            label="Flight 1"
+            from={primary.originCode}
+            to={primary.destinationCode}
+            fromCity={primary.origin}
+            toCity={primary.destination}
+            time={fmt(primary.departTime)}
+            flightNo={primary.flightNumber}
+            aircraft={primary.aircraft?.model ?? "—"}
+            pnr={pnr}
+            passengers={passengers.map((p, i) => ({
+              name: `${p.firstName} ${p.lastName}`.trim() || `Passenger ${i + 1}`,
+              seat: selectedSeats.primary[i] ?? "—",
+            }))}
+          />
 
-            <FlightLeg
-              from={primary.originCode}
-              to={primary.destinationCode}
-              fromCity={primary.origin}
-              toCity={primary.destination}
-              time={fmt(primary.departTime)}
-              flightNo={primary.flightNumber}
+          {secondary && (
+            <BoardingCard
+              label="Flight 2"
+              from={primary.destinationCode}
+              to={secondary.cityCode}
+              fromCity={primary.destination}
+              toCity={secondary.city}
+              time="Connection"
+              flightNo="—"
+              aircraft="Connecting service"
+              pnr={pnr}
+              passengers={passengers.map((p, i) => ({
+                name: `${p.firstName} ${p.lastName}`.trim() || `Passenger ${i + 1}`,
+                seat: selectedSeats.connecting[i] ?? "—",
+              }))}
             />
-            {secondary && (
-              <FlightLeg
-                from={primary.destinationCode}
-                to={secondary.cityCode}
-                fromCity={primary.destination}
-                toCity={secondary.city}
-                time="Connection"
-                flightNo="—"
-              />
-            )}
-
-            <div className="mt-8 border-t border-border pt-6">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                Passengers
-              </p>
-              <div className="mt-3 space-y-2">
-                {passengers.map((p, i) => (
-                  <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="text-foreground">
-                      {p.firstName} {p.lastName}
-                    </span>
-                    <span className="font-mono text-xs text-muted-foreground">
-                      Seat {seats[i] ?? "—"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="animate-fade-up flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-8"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-              Mobile boarding pass
-            </p>
-            <div className="mt-4 rounded-2xl border border-foreground/20 bg-background p-6">
-              <QrCode className="h-40 w-40 text-foreground" strokeWidth={1} />
-            </div>
-            <p className="mt-4 font-mono text-xs text-muted-foreground">
-              {pnr} · {primary.flightNumber}
-            </p>
-          </div>
+          )}
         </div>
 
         <div className="mt-12 flex justify-center gap-3">
@@ -125,6 +98,74 @@ function Confirmation() {
         </div>
       </section>
     </main>
+  );
+}
+
+function BoardingCard({
+  label,
+  from,
+  to,
+  fromCity,
+  toCity,
+  time,
+  flightNo,
+  aircraft,
+  pnr,
+  passengers,
+}: {
+  label: string;
+  from: string;
+  to: string;
+  fromCity: string;
+  toCity: string;
+  time: string;
+  flightNo: string;
+  aircraft: string;
+  pnr: string;
+  passengers: { name: string; seat: string }[];
+}) {
+  return (
+    <div className="animate-fade-up grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-border bg-card md:grid-cols-[1.6fr_1fr]">
+      <div className="p-8">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{label}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {flightNo}
+          </p>
+        </div>
+        <FlightLeg
+          from={from}
+          to={to}
+          fromCity={fromCity}
+          toCity={toCity}
+          time={time}
+          flightNo={flightNo}
+        />
+        <div className="mt-6 border-t border-border pt-4">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Aircraft</p>
+          <p className="mt-1 text-sm text-foreground">{aircraft}</p>
+        </div>
+        <div className="mt-4 space-y-1.5 border-t border-border pt-4">
+          {passengers.map((p, i) => (
+            <div key={i} className="flex items-center justify-between text-sm">
+              <span className="text-foreground">{p.name}</span>
+              <span className="font-mono text-xs text-muted-foreground">Seat {p.seat}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center border-t border-border bg-background/40 p-8 md:border-l md:border-t-0">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          Boarding pass
+        </p>
+        <div className="mt-4 rounded-2xl border border-foreground/20 bg-background p-5">
+          <QrCode className="h-28 w-28 text-foreground" strokeWidth={1} />
+        </div>
+        <p className="mt-4 font-mono text-xs text-muted-foreground">
+          {pnr} · {flightNo}
+        </p>
+      </div>
+    </div>
   );
 }
 
