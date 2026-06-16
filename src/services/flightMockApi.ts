@@ -1,5 +1,11 @@
 // Mock flight API simulating backend latency and multi-passenger booking payloads.
 
+export interface Aircraft {
+  model: string;
+  legroomInches: number;
+  baggage: string;
+}
+
 export interface Flight {
   id: string;
   airline: string;
@@ -17,7 +23,17 @@ export interface Flight {
   isDeal: boolean;
   dealLabel?: string;
   cabin: "Economy" | "Premium" | "Business";
+  aircraft: Aircraft;
 }
+
+const AIRCRAFT_MODELS = [
+  "Boeing 787-9 Dreamliner",
+  "Boeing 777-300ER",
+  "Airbus A350-900",
+  "Airbus A321neo",
+  "Boeing 737 MAX 8",
+  "Airbus A380-800",
+];
 
 export interface PriceAlert {
   flightId: string;
@@ -97,6 +113,11 @@ function makeFlight(
     isDeal,
     dealLabel: isDeal ? `${pct}% Below Average` : undefined,
     cabin: "Economy",
+    aircraft: {
+      model: rand(AIRCRAFT_MODELS),
+      legroomInches: 30 + Math.floor(Math.random() * 5),
+      baggage: "1 carry-on + 1 personal item included",
+    },
   };
 }
 

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Pencil, Trash2, MoreHorizontal, Ban, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, MoreHorizontal, Ban, CheckCircle2, LogOut } from "lucide-react";
 import {
   ADMIN_FLIGHTS,
   ADMIN_BOOKINGS,
@@ -23,21 +23,53 @@ import {
   type AdminFlight,
   type AdminUser,
 } from "@/domains/admin/mockData";
+import { useAuth, getAuthSnapshot } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — KimFlights" }] }),
+  beforeLoad: ({ location }) => {
+    const { isAuthenticated, user } = getAuthSnapshot();
+    if (!isAuthenticated || user?.role !== "admin") {
+      throw redirect({ to: "/login", search: { redirect: location.href } as never });
+    }
+  },
   component: Admin,
 });
 
 function Admin() {
+  const user = useAuth((s) => s.user);
+  const logout = useAuth((s) => s.logout);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate({ to: "/" });
+    }
+  }, [user, navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate({ to: "/" });
+  };
+
   return (
     <main className="min-h-screen bg-background pt-24 pb-24">
       <section className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="animate-fade-up">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Console</p>
-          <h1 className="mt-2 text-4xl font-light tracking-tight text-foreground md:text-5xl">
-            Admin Dashboard
-          </h1>
+        <div className="animate-fade-up flex items-end justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+              Console · {user?.username}
+            </p>
+            <h1 className="mt-2 text-4xl font-light tracking-tight text-foreground md:text-5xl">
+              Admin Dashboard
+            </h1>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="h-3 w-3" /> Sign out
+          </button>
         </div>
 
         <Tabs defaultValue="flights" className="mt-10">

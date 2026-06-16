@@ -12,7 +12,9 @@ import {
   type SeatTier,
 } from "@/domains/booking/types";
 
-let state: BookingState = {
+const STORAGE_KEY = "kf:itinerary";
+
+const initialState: BookingState = {
   primary: null,
   secondary: null,
   passengerCount: 1,
@@ -22,8 +24,30 @@ let state: BookingState = {
   pnr: null,
 };
 
+function loadState(): BookingState {
+  if (typeof window === "undefined") return initialState;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return initialState;
+    return { ...initialState, ...JSON.parse(raw) } as BookingState;
+  } catch {
+    return initialState;
+  }
+}
+
+let state: BookingState = loadState();
+
 const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((l) => l());
+const emit = () => {
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      /* ignore */
+    }
+  }
+  listeners.forEach((l) => l());
+};
 
 function resize<T>(arr: T[], n: number, make: (i: number) => T): T[] {
   if (arr.length === n) return arr;
@@ -87,7 +111,9 @@ export const itinerary = {
   },
   subscribe(l: () => void) {
     listeners.add(l);
-    return () => listeners.delete(l);
+    return () => {
+      listeners.delete(l);
+    };
   },
 };
 
@@ -95,7 +121,7 @@ export function useItinerary() {
   return useSyncExternalStore(
     (cb) => itinerary.subscribe(cb),
     () => itinerary.get(),
-    () => itinerary.get(),
+    () => initialState,
   );
 }
 
