@@ -85,7 +85,10 @@ export const itinerary = {
       passengerCount: count,
       passengers: resize(state.passengers, count, defaultPassenger),
       addons: resize(state.addons, count, defaultAddons),
-      selectedSeats: resizeSeats(state.selectedSeats, count),
+      selectedSeats: {
+        primary: Array.from({ length: count }, () => null),
+        connecting: Array.from({ length: count }, () => null),
+      },
     };
     emit();
   },
