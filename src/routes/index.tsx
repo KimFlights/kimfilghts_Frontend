@@ -63,13 +63,13 @@ function Index() {
 
         <form
           onSubmit={onSearch}
-          className="glass-panel mt-12 w-full max-w-5xl rounded-2xl p-2 animate-fade-up md:p-3"
+          className="glass-panel mt-12 w-full max-w-5xl rounded-2xl p-2 transition-all duration-500 ease-out hover:bg-background/20 hover:border-border/60 animate-fade-up md:p-3"
           style={{ animationDelay: "0.2s" }}
         >
           <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl md:grid-cols-[1fr_1fr_1fr_auto_auto]">
             <AirportCombobox label="From" value={origin} onChange={(c) => setOrigin(c)} />
             <AirportCombobox label="To" value={destination} onChange={(c) => setDestination(c)} />
-            <label className="flex flex-col gap-1 bg-background/60 px-5 py-4">
+            <label className="flex flex-col gap-1 bg-background/60 px-5 py-4 transition-all duration-300 ease-in-out cursor-pointer hover:bg-background/80 focus-within:bg-background">
               <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                 Departure
               </span>
@@ -88,7 +88,7 @@ function Index() {
             />
             <button
               type="submit"
-              className="m-1 rounded-lg bg-foreground px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-background transition hover:opacity-90"
+              className="m-1 rounded-lg bg-foreground px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-background transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
             >
               Search
             </button>
@@ -115,7 +115,7 @@ function PassengerPicker({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex flex-col gap-1 bg-background/60 px-5 py-4 text-left transition hover:bg-background/80"
+          className="flex flex-col gap-1 bg-background/60 px-5 py-4 text-left transition-all duration-300 ease-in-out cursor-pointer hover:bg-background/80 focus:bg-background"
         >
           <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             Guests

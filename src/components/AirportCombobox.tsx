@@ -27,7 +27,7 @@ export function AirportCombobox({ label, value, onChange }: Props) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex w-full flex-col gap-1 bg-background/60 px-5 py-4 text-left transition hover:bg-background/80"
+          className="flex w-full flex-col gap-1 bg-background/60 px-5 py-4 text-left transition-all duration-300 ease-in-out cursor-pointer hover:bg-background/80 focus:bg-background"
         >
           <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             {label}

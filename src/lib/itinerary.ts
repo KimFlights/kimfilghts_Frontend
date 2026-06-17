@@ -92,11 +92,11 @@ export const itinerary = {
     };
     emit();
   },
-  setSecondary(s: SecondaryUpsell | null) {
-    // Purge connecting seats whenever the secondary leg changes or is removed.
+  setSecondary(_s: SecondaryUpsell | null) {
+    // MVP: connecting flights disabled — secondary is force-null and connecting seats purged.
     state = {
       ...state,
-      secondary: s,
+      secondary: null,
       selectedSeats: {
         ...state.selectedSeats,
         connecting: state.selectedSeats.connecting.map(() => null),
@@ -173,7 +173,8 @@ export function useItinerary() {
 }
 
 export function computeTotals(s: BookingState, seatTierOf: (id: string | null) => SeatTier | null) {
-  const flightPrice = (s.primary?.price ?? 0) + (s.secondary?.price ?? 0);
+  // MVP: secondary flight pricing disabled.
+  const flightPrice = s.primary?.price ?? 0;
   const flightTotal = flightPrice * s.passengerCount;
   const addonsTotal = s.addons.reduce(
     (sum, a) =>
@@ -188,15 +189,13 @@ export function computeTotals(s: BookingState, seatTierOf: (id: string | null) =
       const t = seatTierOf(id);
       return sum + (t ? SEAT_TIER_PRICE[t] : 0);
     }, 0);
-  const seatsTotal =
-    sumSeats(s.selectedSeats.primary) + (s.secondary ? sumSeats(s.selectedSeats.connecting) : 0);
+  const seatsTotal = sumSeats(s.selectedSeats.primary);
   const subtotal = flightTotal + addonsTotal + seatsTotal;
   const taxes = Math.round(subtotal * 0.12);
   const total = subtotal + taxes;
-  const savings =
-    Math.max(0, ((s.primary?.averagePrice ?? 0) - (s.primary?.price ?? 0)) * s.passengerCount) +
-    (s.secondary
-      ? Math.max(0, (s.secondary.averagePrice - s.secondary.price) * s.passengerCount)
-      : 0);
+  const savings = Math.max(
+    0,
+    ((s.primary?.averagePrice ?? 0) - (s.primary?.price ?? 0)) * s.passengerCount,
+  );
   return { flightTotal, addonsTotal, seatsTotal, subtotal, taxes, total, savings };
 }
