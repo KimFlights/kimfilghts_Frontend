@@ -53,11 +53,11 @@ function Confirmation() {
 
         <div className="mt-16 space-y-6">
           <BoardingCard
-            label="Flight 1"
+            label="Flight"
             from={primary.originCode}
-            to={secondary ? secondary.cityCode : primary.destinationCode}
+            to={primary.destinationCode}
             fromCity={primary.origin}
-            toCity={secondary ? secondary.city : primary.destination}
+            toCity={primary.destination}
             time={fmt(primary.departTime)}
             flightNo={primary.flightNumber}
             aircraft={primary.aircraft?.model ?? "—"}
@@ -67,24 +67,7 @@ function Confirmation() {
               seat: selectedSeats.primary[i] ?? "—",
             }))}
           />
-
-          {secondary && (
-            <BoardingCard
-              label="Flight 2"
-              from={secondary.cityCode}
-              to={primary.destinationCode}
-              fromCity={secondary.city}
-              toCity={primary.destination}
-              time="Connection"
-              flightNo="—"
-              aircraft="Connecting service"
-              pnr={pnr}
-              passengers={passengers.map((p, i) => ({
-                name: `${p.firstName} ${p.lastName}`.trim() || `Passenger ${i + 1}`,
-                seat: selectedSeats.connecting[i] ?? "—",
-              }))}
-            />
-          )}
+          {/* MVP: connecting-flight BoardingCard disabled. */}
         </div>
 
         <div className="mt-12 flex justify-center gap-3">

@@ -44,24 +44,12 @@ function Results() {
     fetchFlights(search).then(setFlights);
   }, [search.origin, search.destination, search.date, search.passengers]);
 
-  const handleSelect = async (f: Flight) => {
+  const handleSelect = (f: Flight) => {
+    // MVP: connecting/secondary upsell disabled. Go straight to ConfigPanel.
     setSelected(f);
     setUpsell(null);
     itinerary.setPrimary(f, search.passengers);
-    const list = await fetchSecondaryConnections(search.destination);
-    setShowUpsell(list);
-  };
-
-  const skipUpsell = () => {
-    setUpsell(null);
     itinerary.setSecondary(null);
-    setShowUpsell(null);
-    setConfigOpen(true);
-  };
-
-  const pickUpsell = (u: SecondaryUpsell | null) => {
-    setUpsell(u);
-    itinerary.setSecondary(u);
     setShowUpsell(null);
     setConfigOpen(true);
   };
@@ -106,18 +94,7 @@ function Results() {
         </div>
       </section>
 
-      {showUpsell && selected && (
-        <UpsellSheet
-          primary={selected}
-          upsells={showUpsell}
-          onSkip={skipUpsell}
-          onPick={pickUpsell}
-          onClose={() => {
-            setShowUpsell(null);
-            setSelected(null);
-          }}
-        />
-      )}
+      {/* MVP: secondary-city UpsellSheet disabled. */}
 
       {configOpen && selected && (
         <ConfigPanel

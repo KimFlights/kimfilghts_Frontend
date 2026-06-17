@@ -175,23 +175,12 @@ function Checkout() {
 
               <div className="mt-6 space-y-4 border-t border-border pt-4">
                 <SummaryLine
-                  label={
-                    secondary
-                      ? `${primary.originCode} → ${secondary.cityCode}`
-                      : `${primary.originCode} → ${primary.destinationCode}`
-                  }
+                  label={`${primary.originCode} → ${primary.destinationCode}`}
                   detail={`${formatTime(primary.departTime)} · ${primary.airline}`}
                   value={`$${(primary.price * state.passengerCount).toLocaleString()}`}
                   sub={`${state.passengerCount} × $${primary.price}`}
                 />
-                {secondary && (
-                  <SummaryLine
-                    label={`${secondary.cityCode} → ${primary.destinationCode}`}
-                    detail={`Connection · ${secondary.city}`}
-                    value={`$${(secondary.price * state.passengerCount).toLocaleString()}`}
-                    sub={`${state.passengerCount} × $${secondary.price}`}
-                  />
-                )}
+                {/* MVP: secondary connection summary disabled. */}
               </div>
 
               <div className="mt-4 space-y-3 border-t border-border pt-4">
@@ -201,10 +190,9 @@ function Checkout() {
                 {state.passengers.map((p, i) => {
                   const a = state.addons[i];
                   const primarySeat = state.selectedSeats.primary[i];
-                  const connectingSeat = secondary ? state.selectedSeats.connecting[i] : null;
-                  const seatCharge =
-                    (inferTier(primarySeat) ? SEAT_TIER_PRICE[inferTier(primarySeat)!] : 0) +
-                    (inferTier(connectingSeat) ? SEAT_TIER_PRICE[inferTier(connectingSeat)!] : 0);
+                  const seatCharge = inferTier(primarySeat)
+                    ? SEAT_TIER_PRICE[inferTier(primarySeat)!]
+                    : 0;
                   return (
                     <div key={p.id} className="text-xs text-muted-foreground">
                       <div className="flex justify-between">
@@ -222,20 +210,11 @@ function Checkout() {
                       </div>
                       <div className="mt-1 flex justify-between font-mono text-[10px]">
                         <span>
-                          {secondary
-                            ? `${primary.originCode}→${secondary.cityCode}`
-                            : `${primary.originCode}→${primary.destinationCode}`}
+                          {primary.originCode}→{primary.destinationCode}
                         </span>
                         <span>Seat {primarySeat ?? "—"}</span>
                       </div>
-                      {secondary && (
-                        <div className="flex justify-between font-mono text-[10px]">
-                          <span>
-                            {secondary.cityCode}→{primary.destinationCode}
-                          </span>
-                          <span>Seat {connectingSeat ?? "—"}</span>
-                        </div>
-                      )}
+                      {/* MVP: connecting-segment seat row disabled. */}
                     </div>
                   );
                 })}

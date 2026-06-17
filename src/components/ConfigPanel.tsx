@@ -9,7 +9,7 @@ import {
   type SegmentKey,
 } from "@/domains/booking/types";
 import { SeatMap, generateSeats } from "@/components/SeatMap";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import { Check, Briefcase, Luggage, Zap, X } from "lucide-react";
 
 interface Props {
@@ -99,8 +99,7 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
               Configure
             </p>
             <h2 className="mt-1 text-2xl font-light text-foreground">
-              {primary.originCode} → {secondary ? `${secondary.cityCode} → ` : ""}
-              {primary.destinationCode}
+              {primary.originCode} → {primary.destinationCode}
             </h2>
             <div className="mt-3 flex items-center gap-2">
               {STEPS.map((s, i) => (
@@ -205,33 +204,8 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
             </div>
           )}
 
-          {step === 2 &&
-            (secondary ? (
-              <Tabs
-                value={activeSegment}
-                onValueChange={(v) => setActiveSegment(v as SegmentKey)}
-                className="w-full"
-              >
-                <TabsList className="mb-6 w-full">
-                  <TabsTrigger
-                    value="primary"
-                    className="flex-1 text-[10px] uppercase tracking-[0.2em]"
-                  >
-                    Flight 1 · {primary.originCode} → {secondary.cityCode}
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="connecting"
-                    className="flex-1 text-[10px] uppercase tracking-[0.2em]"
-                  >
-                    Flight 2 · {secondary.cityCode} → {primary.destinationCode}
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="primary">{renderSeatMap("primary")}</TabsContent>
-                <TabsContent value="connecting">{renderSeatMap("connecting")}</TabsContent>
-              </Tabs>
-            ) : (
-              renderSeatMap("primary")
-            ))}
+          {/* MVP: connecting flights disabled — single SeatMap for primary only. */}
+          {step === 2 && renderSeatMap("primary")}
         </div>
 
         {/* Footer */}
