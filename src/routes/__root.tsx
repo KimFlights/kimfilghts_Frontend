@@ -140,22 +140,10 @@ function Nav() {
             Discover
           </Link>
           <Link
-            to="/admin"
-            className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
-          >
-            Admin
-          </Link>
-          <Link
             to="/bookings"
             className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
           >
             Bookings
-          </Link>
-          <Link
-            to="/login"
-            className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
-          >
-            Members
           </Link>
         </div>
         <div className="flex-1 flex justify-end">

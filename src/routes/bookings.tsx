@@ -53,6 +53,7 @@ function Bookings() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="pb-4 font-medium uppercase tracking-[0.2em] text-muted-foreground">Reference</th>
+                  <th className="pb-4 font-medium uppercase tracking-[0.2em] text-muted-foreground">Seats</th>
                   <th className="pb-4 font-medium uppercase tracking-[0.2em] text-muted-foreground">Total Price</th>
                 </tr>
               </thead>
@@ -60,6 +61,13 @@ function Bookings() {
                 {bookings.map((b) => (
                   <tr key={b.bookingReference} className="border-b border-border/50 transition-colors hover:bg-muted/30">
                     <td className="py-4 font-mono">{b.bookingReference}</td>
+                    <td className="py-4">
+                      {b.passengers?.map((p, i) => (
+                        <div key={i} className="text-sm">
+                          {p.name}: <span className="font-mono text-muted-foreground">{p.tickets?.[0]?.seatNum || "UNASSIGNED"}</span>
+                        </div>
+                      ))}
+                    </td>
                     <td className="py-4 text-deal">${b.totalPrice.toLocaleString()}</td>
                   </tr>
                 ))}

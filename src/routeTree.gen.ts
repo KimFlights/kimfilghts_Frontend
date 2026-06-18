@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PaymentFailedRouteImport } from './routes/payment-failed'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BookingsRouteImport } from './routes/bookings'
@@ -26,6 +27,11 @@ const ResultsRoute = ResultsRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentFailedRoute = PaymentFailedRouteImport.update({
+  id: '/payment-failed',
+  path: '/payment-failed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/bookings': typeof BookingsRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
+  '/payment-failed': typeof PaymentFailedRoute
   '/register': typeof RegisterRoute
   '/results': typeof ResultsRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/bookings': typeof BookingsRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
+  '/payment-failed': typeof PaymentFailedRoute
   '/register': typeof RegisterRoute
   '/results': typeof ResultsRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/bookings': typeof BookingsRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
+  '/payment-failed': typeof PaymentFailedRoute
   '/register': typeof RegisterRoute
   '/results': typeof ResultsRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/checkout'
     | '/login'
+    | '/payment-failed'
     | '/register'
     | '/results'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/checkout'
     | '/login'
+    | '/payment-failed'
     | '/register'
     | '/results'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/checkout'
     | '/login'
+    | '/payment-failed'
     | '/register'
     | '/results'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   BookingsRoute: typeof BookingsRoute
   CheckoutRoute: typeof CheckoutRoute
   LoginRoute: typeof LoginRoute
+  PaymentFailedRoute: typeof PaymentFailedRoute
   RegisterRoute: typeof RegisterRoute
   ResultsRoute: typeof ResultsRoute
 }
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-failed': {
+      id: '/payment-failed'
+      path: '/payment-failed'
+      fullPath: '/payment-failed'
+      preLoaderRoute: typeof PaymentFailedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookingsRoute: BookingsRoute,
   CheckoutRoute: CheckoutRoute,
   LoginRoute: LoginRoute,
+  PaymentFailedRoute: PaymentFailedRoute,
   RegisterRoute: RegisterRoute,
   ResultsRoute: ResultsRoute,
 }
