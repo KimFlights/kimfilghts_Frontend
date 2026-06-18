@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useItinerary, itinerary, computeTotals } from "@/lib/itinerary";
 import { ADDON_PRICES, SEAT_TIER_PRICE, type SeatTier } from "@/domains/booking/types";
-import { submitBooking } from "@/services/flightMockApi";
+import { submitBooking, fetchCardBrand } from "@/services/flightMockApi";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — KimFlights" }] }),
@@ -30,6 +30,7 @@ function Checkout() {
   const state = useItinerary();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [brand, setBrand] = useState("");
   const [contact, setContact] = useState({
     email: "",
     phone: "",
@@ -40,6 +41,32 @@ function Checkout() {
   });
 
   const totals = useMemo(() => computeTotals(state, inferTier), [state]);
+
+  const handleCardChange = async (val: string) => {
+    const raw = val.replace(/\D/g, "");
+    let formatted = raw.match(/.{1,4}/g)?.join(" ") ?? "";
+    setContact({ ...contact, card: formatted });
+    
+    if (raw.length >= 6) {
+      const b = await fetchCardBrand(raw.slice(0, 6));
+      setBrand(b);
+    } else {
+      setBrand("");
+    }
+  };
+
+  const handleExpiryChange = (val: string) => {
+    const raw = val.replace(/\D/g, "");
+    if (raw.length >= 3) {
+      setContact({ ...contact, expiry: `${raw.slice(0, 2)} / ${raw.slice(2, 4)}` });
+    } else {
+      setContact({ ...contact, expiry: raw });
+    }
+  };
+
+  const handleCvcChange = (val: string) => {
+    setContact({ ...contact, cvc: val.replace(/\D/g, "").slice(0, 4) });
+  };
 
   if (!state.primary) {
     return (
@@ -75,7 +102,7 @@ function Checkout() {
         connecting: secondary ? state.selectedSeats.connecting : [],
       },
       total: totals.total,
-      contact: { email: contact.email, phone: contact.phone },
+      contact: contact,
     });
     itinerary.confirm();
     navigate({ to: "/booking-confirmation" });
@@ -122,26 +149,33 @@ function Checkout() {
             </FormSection>
 
             <FormSection title="Payment" step="02">
-              <Input
-                label="Card number"
-                required
-                value={contact.card}
-                onChange={(v) => setContact({ ...contact, card: v })}
-                placeholder="1234 5678 9012 3456"
-              />
+              <div className="relative">
+                <Input
+                  label="Card number"
+                  required
+                  value={contact.card}
+                  onChange={handleCardChange}
+                  placeholder="1234 5678 9012 3456"
+                />
+                {brand && (
+                  <span className="absolute right-0 top-8 text-xs font-medium uppercase text-muted-foreground/80">
+                    {brand}
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Expiry"
                   required
                   value={contact.expiry}
-                  onChange={(v) => setContact({ ...contact, expiry: v })}
+                  onChange={handleExpiryChange}
                   placeholder="MM / YY"
                 />
                 <Input
                   label="CVC"
                   required
                   value={contact.cvc}
-                  onChange={(v) => setContact({ ...contact, cvc: v })}
+                  onChange={handleCvcChange}
                   placeholder="123"
                 />
               </div>

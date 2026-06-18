@@ -146,6 +146,12 @@ function Nav() {
             Admin
           </Link>
           <Link
+            to="/bookings"
+            className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
+          >
+            Bookings
+          </Link>
+          <Link
             to="/login"
             className="text-xs uppercase tracking-[0.2em] text-foreground/80 hover:text-foreground"
           >
