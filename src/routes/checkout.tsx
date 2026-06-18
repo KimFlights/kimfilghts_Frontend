@@ -30,6 +30,7 @@ function Checkout() {
   const state = useItinerary();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [brand, setBrand] = useState("");
   const [contact, setContact] = useState({
     email: "",
@@ -92,20 +93,28 @@ function Checkout() {
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    await submitBooking({
-      primaryId: primary.id,
-      secondaryId: secondary?.id ?? null,
-      passengers: state.passengers,
-      addons: state.addons,
-      seats: {
-        primary: state.selectedSeats.primary,
-        connecting: secondary ? state.selectedSeats.connecting : [],
-      },
-      total: totals.total,
-      contact: contact,
-    });
-    itinerary.confirm();
-    navigate({ to: "/booking-confirmation" });
+    setError(null);
+    try {
+      await submitBooking({
+        primaryId: primary.id,
+        secondaryId: secondary?.id ?? null,
+        passengers: state.passengers,
+        addons: state.addons,
+        seats: {
+          primary: state.selectedSeats.primary,
+          connecting: secondary ? state.selectedSeats.connecting : [],
+        },
+        total: totals.total,
+        contact: contact,
+      });
+      itinerary.confirm();
+      navigate({ to: "/booking-confirmation" });
+    } catch (err: any) {
+      console.error("Booking/Payment failed", err);
+      navigate({ to: "/payment-failed", search: { reason: err instanceof Error ? err.message : "Unknown error" } });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -148,7 +157,18 @@ function Checkout() {
               />
             </FormSection>
 
-            <FormSection title="Payment" step="02">
+            <FormSection title="Seats" step="02">
+              <div className="rounded-lg border border-border bg-card/50 p-4">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  Chosen seats
+                </p>
+                <p className="mt-2 font-mono text-sm text-foreground">
+                  {state.selectedSeats.primary.map((seat) => seat ?? "—").join(", ")}
+                </p>
+              </div>
+            </FormSection>
+
+            <FormSection title="Payment" step="03">
               <div className="relative">
                 <Input
                   label="Card number"
@@ -188,13 +208,20 @@ function Checkout() {
               />
             </FormSection>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full rounded-full bg-foreground py-5 text-xs font-semibold uppercase tracking-[0.3em] text-background transition hover:opacity-90 disabled:opacity-50"
-            >
-              {submitting ? "Processing…" : `Confirm & pay $${totals.total.toLocaleString()}`}
-            </button>
+            <div className="space-y-4">
+              {error && (
+                <div className="rounded border border-red-500/50 bg-red-500/10 p-4 text-sm text-red-500">
+                  {error}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-full bg-foreground py-5 text-xs font-semibold uppercase tracking-[0.3em] text-background transition hover:opacity-90 disabled:opacity-50"
+              >
+                {submitting ? "Processing…" : `Confirm & pay $${totals.total.toLocaleString()}`}
+              </button>
+            </div>
           </form>
 
           <aside

@@ -31,6 +31,7 @@ export interface Flight {
   stops: number;
   price: number;
   averagePrice: number;
+  seatCapacity: number;
   isDeal: boolean;
   dealLabel?: string;
   cabin: "Economy" | "Premium" | "Business";
@@ -74,6 +75,13 @@ export interface BookingResult {
 export interface UserBooking {
   bookingReference: string;
   totalPrice: number;
+  passengers: Array<{
+    name: string;
+    tickets: Array<{
+      ticketCode: string;
+      seatNum: string;
+    }>;
+  }>;
 }
 
 // ---------------------------------------------------------------
@@ -91,6 +99,7 @@ interface BackendFlight {
   airlineName: string;
   originAirportCode: string;
   destinationAirportCode: string;
+  seatCapacity: number | string | null;
 }
 
 function mapBackendFlight(bf: BackendFlight): Flight {
@@ -114,6 +123,7 @@ function mapBackendFlight(bf: BackendFlight): Flight {
     stops: 0,
     price,
     averagePrice: avg,
+    seatCapacity: Number(bf.seatCapacity) || 114,
     isDeal: false,
     cabin: "Economy",
     aircraft: {
@@ -142,6 +152,13 @@ export async function fetchFlights(params: {
   });
   const backendFlights = await apiRequest<BackendFlight[]>(`/flight/search?${qs.toString()}`);
   return backendFlights.map(mapBackendFlight).sort((a, b) => a.price - b.price);
+}
+
+export async function fetchOccupiedSeats(flightId: string): Promise<Set<string>> {
+  const seats = await apiRequest<string[]>(
+    `/api/bookings/${encodeURIComponent(flightId)}/occupied-seats`,
+  );
+  return new Set(seats.filter(Boolean));
 }
 
 // ---------------------------------------------------------------
@@ -229,9 +246,18 @@ export async function submitBooking(payload: BookingPayload): Promise<BookingRes
           price: payload.total / payload.passengers.length,
           availability: "RESERVED",
           flightId: payload.primaryId,
+          seatNum: payload.seats.primary[i] || "UNASSIGNED",
         },
       ],
-      luggage: [],
+      luggage: payload.addons[i]?.checkedBag
+        ? [
+            {
+              weight: 23,
+              type: "CHECKED",
+              price: 70,
+            },
+          ]
+        : [],
     })),
   };
 
@@ -251,13 +277,17 @@ export async function submitBooking(payload: BookingPayload): Promise<BookingRes
   });
 
   // 3. Pay
-  await apiRequest<{ id: number }>("/payment", {
+  const paymentRes = await apiRequest<{ id: number; status: string; failureReason?: string }>("/payment", {
     method: "POST",
     body: JSON.stringify({
       cardNumber: payload.contact.card.replace(/\s+/g, ""),
       invoiceId: invoiceRes.id,
     }),
   });
+
+  if (paymentRes.status === "FAILED") {
+    throw new Error(paymentRes.failureReason || "Payment declined");
+  }
 
   return { pnr: bookingRef, status: "confirmed", createdAt: new Date().toISOString() };
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import type { Flight, SecondaryUpsell } from "@/services/flightMockApi";
+import { fetchOccupiedSeats, type Flight, type SecondaryUpsell } from "@/services/flightMockApi";
 import { itinerary, useItinerary, computeTotals } from "@/lib/itinerary";
 import {
   ADDON_PRICES,
@@ -26,13 +26,22 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
   const [step, setStep] = useState(0);
   const [currentSeat, setCurrentSeat] = useState(0);
   const [activeSegment, setActiveSegment] = useState<SegmentKey>("primary");
+  const [occupiedPrimarySeats, setOccupiedPrimarySeats] = useState<Set<string>>(new Set());
 
   // Independent seat maps per segment.
-  const primarySeats = useMemo(() => generateSeats(), []);
+  const primarySeats = useMemo(() => generateSeats(primary.seatCapacity), [primary.seatCapacity]);
   const connectingSeats = useMemo(() => generateSeats(), []);
   const seatsBySegment: Record<SegmentKey, ReturnType<typeof generateSeats>> = {
     primary: primarySeats,
     connecting: connectingSeats,
+  };
+  const occupiedSeatsBySegment: Record<SegmentKey, Set<string>> = {
+    primary: occupiedPrimarySeats,
+    connecting: new Set(),
+  };
+  const capacityBySegment: Record<SegmentKey, number> = {
+    primary: primary.seatCapacity,
+    connecting: 114,
   };
 
   const seatTierOf = (id: string | null): SeatTier | null => {
@@ -57,6 +66,23 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
     setCurrentSeat(0);
   }, [activeSegment]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setOccupiedPrimarySeats(new Set());
+
+    fetchOccupiedSeats(primary.id)
+      .then((seats) => {
+        if (!cancelled) setOccupiedPrimarySeats(seats);
+      })
+      .catch(() => {
+        if (!cancelled) setOccupiedPrimarySeats(new Set());
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [primary.id]);
+
   const handleSeatSelect = (seatId: string) => {
     const current = state.selectedSeats[activeSegment];
     if (current[currentSeat] === seatId) {
@@ -78,7 +104,8 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
 
   const renderSeatMap = (segment: SegmentKey) => (
     <SeatMap
-      seats={seatsBySegment[segment]}
+      capacity={capacityBySegment[segment]}
+      occupiedSeats={occupiedSeatsBySegment[segment]}
       selected={state.selectedSeats[segment]}
       currentPassenger={currentSeat}
       onSelect={handleSeatSelect}

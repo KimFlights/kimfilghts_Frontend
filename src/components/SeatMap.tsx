@@ -2,28 +2,36 @@ import { useMemo } from "react";
 import type { Seat, SeatTier } from "@/domains/booking/types";
 import { SEAT_TIER_PRICE } from "@/domains/booking/types";
 
-export function generateSeats(): Seat[] {
+const DEFAULT_CAPACITY = 114;
+
+export function generateSeats(
+  capacity = DEFAULT_CAPACITY,
+  occupiedSeats: Set<string> = new Set(),
+): Seat[] {
   const seats: Seat[] = [];
-  // Business: rows 1-3, 2x2 layout (A, B __ E, F)
+  const normalizedCapacity = Math.max(0, Math.floor(capacity));
+
+  const addRows = (startRow: number, maxRows: number, cols: string[], tier: SeatTier) => {
+    let row = startRow;
+    let rowsAdded = 0;
+    while (seats.length < normalizedCapacity && rowsAdded < maxRows) {
+      for (const col of cols) {
+        if (seats.length >= normalizedCapacity) break;
+        const id = `${row}${col}`;
+        seats.push({ id, row, col, tier, occupied: occupiedSeats.has(id) });
+      }
+      row += 1;
+      rowsAdded += 1;
+    }
+    return row;
+  };
+
   const businessCols = ["A", "B", "E", "F"];
-  for (let row = 1; row <= 3; row++) {
-    for (const col of businessCols) {
-      seats.push({ id: `${row}${col}`, row, col, tier: "business", occupied: Math.random() < 0.4 });
-    }
-  }
-  // Economy Plus: rows 4-7, 3x3 (A B C __ D E F)
   const econCols = ["A", "B", "C", "D", "E", "F"];
-  for (let row = 4; row <= 7; row++) {
-    for (const col of econCols) {
-      seats.push({ id: `${row}${col}`, row, col, tier: "plus", occupied: Math.random() < 0.35 });
-    }
-  }
-  // Economy: rows 8-20
-  for (let row = 8; row <= 20; row++) {
-    for (const col of econCols) {
-      seats.push({ id: `${row}${col}`, row, col, tier: "economy", occupied: Math.random() < 0.5 });
-    }
-  }
+  let nextRow = addRows(1, 3, businessCols, "business");
+  nextRow = addRows(nextRow, 4, econCols, "plus");
+  addRows(nextRow, Number.POSITIVE_INFINITY, econCols, "economy");
+
   return seats;
 }
 
@@ -40,7 +48,8 @@ const TIER_LABEL: Record<SeatTier, string> = {
 };
 
 interface Props {
-  seats: Seat[];
+  capacity: number;
+  occupiedSeats: Set<string>;
   selected: (string | null)[];
   currentPassenger: number;
   onSelect: (seatId: string) => void;
@@ -50,7 +59,8 @@ interface Props {
 }
 
 export function SeatMap({
-  seats,
+  capacity,
+  occupiedSeats,
   selected,
   currentPassenger,
   onSelect,
@@ -58,6 +68,8 @@ export function SeatMap({
   passengerCount,
   passengerNames,
 }: Props) {
+  const seats = useMemo(() => generateSeats(capacity, occupiedSeats), [capacity, occupiedSeats]);
+
   const rows = useMemo(() => {
     const map = new Map<number, Seat[]>();
     seats.forEach((s) => {
