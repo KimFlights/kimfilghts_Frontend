@@ -29,7 +29,7 @@ export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — KimFlights" }] }),
   beforeLoad: ({ location }) => {
     const { isAuthenticated, user } = getAuthSnapshot();
-    if (!isAuthenticated || user?.role !== "admin") {
+    if (!isAuthenticated || user?.role !== "ADMIN") {
       throw redirect({ to: "/login", search: { redirect: location.href } as never });
     }
   },

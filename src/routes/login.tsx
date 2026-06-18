@@ -5,8 +5,10 @@ import { useAuth, getAuthSnapshot } from "@/lib/auth";
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — KimFlights" }] }),
   beforeLoad: () => {
-    if (getAuthSnapshot().isAuthenticated) {
-      throw redirect({ to: "/admin" });
+    const { isAuthenticated, user } = getAuthSnapshot();
+    if (isAuthenticated) {
+      // Send already-logged-in users to the right place based on role
+      throw redirect({ to: user?.role === "ADMIN" ? "/admin" : "/" });
     }
   },
   component: Login,
@@ -18,12 +20,17 @@ function Login() {
   const [username, setUsername] = useState("");
   const [pw, setPw] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = login(username, pw);
+    setLoading(true);
+    const res = await login(username, pw);
+    setLoading(false);
     if (res.ok) {
-      navigate({ to: "/admin" });
+      // Route based on role — admin to dashboard, everyone else to home
+      const { user } = getAuthSnapshot();
+      navigate({ to: user?.role === "ADMIN" ? "/admin" : "/" });
     } else {
       setError(res.error ?? "Invalid credentials");
     }
@@ -36,9 +43,6 @@ function Login() {
           Member access
         </p>
         <h1 className="mt-3 text-4xl font-light text-foreground">Sign in.</h1>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Demo credentials — <span className="text-foreground">admin / admin</span>
-        </p>
         <div className="mt-12 space-y-6">
           <Field label="Username" type="text" value={username} onChange={setUsername} />
           <Field label="Password" type="password" value={pw} onChange={setPw} />
@@ -48,9 +52,10 @@ function Login() {
         )}
         <button
           type="submit"
-          className="mt-10 w-full rounded-full bg-foreground py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-background transition hover:opacity-90"
+          disabled={loading}
+          className="mt-10 w-full rounded-full bg-foreground py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-background transition hover:opacity-90 disabled:opacity-50"
         >
-          Continue
+          {loading ? "Signing in…" : "Continue"}
         </button>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           New here?{" "}
