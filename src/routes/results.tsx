@@ -101,11 +101,16 @@ function Results() {
           primary={selected}
           secondary={upsell}
           onClose={() => {
+            // User dismissed/cancelled the panel — discard seat selection
             setConfigOpen(false);
             setSelected(null);
             setUpsell(null);
             itinerary.clearSegmentSeats("primary");
             itinerary.clearSegmentSeats("connecting");
+          }}
+          onConfirm={() => {
+            // User completed all steps and is proceeding to checkout — keep seats
+            setConfigOpen(false);
           }}
         />
       )}
