@@ -155,10 +155,14 @@ export async function fetchFlights(params: {
 }
 
 export async function fetchOccupiedSeats(flightId: string): Promise<Set<string>> {
-  const seats = await apiRequest<string[]>(
-    `/api/bookings/${encodeURIComponent(flightId)}/occupied-seats`,
-  );
-  return new Set(seats.filter(Boolean));
+  try {
+    const seats = await apiRequest<string[]>(
+      `/api/bookings/flight/${encodeURIComponent(flightId)}/seats`,
+    );
+    return new Set(seats.filter(Boolean));
+  } catch {
+    return new Set();
+  }
 }
 
 // ---------------------------------------------------------------
@@ -227,6 +231,14 @@ export async function fetchUserBookings(): Promise<UserBooking[]> {
 }
 
 export async function submitBooking(payload: BookingPayload): Promise<BookingResult> {
+  // Guard: every passenger must have a seat selected
+  const missingSeat = payload.seats.primary.findIndex((s) => !s);
+  if (missingSeat !== -1) {
+    throw new Error(
+      `Passenger ${missingSeat + 1} has no seat selected. Please go back and choose a seat for all passengers.`,
+    );
+  }
+
   // 1. Create Booking
   const createReq = {
     passengers: payload.passengers.map((p, i) => ({
@@ -242,11 +254,11 @@ export async function submitBooking(payload: BookingPayload): Promise<BookingRes
       tickets: [
         {
           ticketCode: `TKT-${Math.floor(Math.random() * 10000)}`,
-          type: "Economy", // generic
+          type: "Economy",
           price: payload.total / payload.passengers.length,
           availability: "RESERVED",
           flightId: payload.primaryId,
-          seatNum: payload.seats.primary[i] || "UNASSIGNED",
+          seatNum: payload.seats.primary[i]!, // guaranteed non-null by guard above
         },
       ],
       luggage: payload.addons[i]?.checkedBag
