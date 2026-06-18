@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [{ title: "Create account — KimFlights" }] }),
@@ -8,12 +9,25 @@ export const Route = createFileRoute("/register")({
 
 function Register() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const register = useAuth((s) => s.register);
+  const [username, setUsername] = useState("");
   const [pw, setPw] = useState("");
-  const submit = (e: React.FormEvent) => {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ to: "/" });
+    setError(null);
+    setLoading(true);
+    const res = await register(username, pw);
+    setLoading(false);
+    if (res.ok) {
+      navigate({ to: "/login" });
+    } else {
+      setError(res.error ?? "Registration failed");
+    }
   };
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6">
       <form onSubmit={submit} className="animate-fade-up w-full max-w-sm">
@@ -22,14 +36,18 @@ function Register() {
         </p>
         <h1 className="mt-3 text-4xl font-light text-foreground">Create account.</h1>
         <div className="mt-12 space-y-6">
-          <Field label="Email" type="email" value={email} onChange={setEmail} />
+          <Field label="Username" type="text" value={username} onChange={setUsername} />
           <Field label="Password" type="password" value={pw} onChange={setPw} />
         </div>
+        {error && (
+          <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-destructive">{error}</p>
+        )}
         <button
           type="submit"
-          className="mt-10 w-full rounded-full bg-foreground py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-background transition hover:opacity-90"
+          disabled={loading}
+          className="mt-10 w-full rounded-full bg-foreground py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-background transition hover:opacity-90 disabled:opacity-50"
         >
-          Create account
+          {loading ? "Creating…" : "Create account"}
         </button>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Already a member?{" "}
