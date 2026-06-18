@@ -289,7 +289,7 @@ export async function submitBooking(payload: BookingPayload): Promise<BookingRes
   });
 
   // 3. Pay
-  const paymentRes = await apiRequest<{ id: number; status: string; failureReason?: string }>("/payment/pay", {
+  const paymentRes = await apiRequest<{ id: number; status: string; failureReason?: string }>("/payment", {
     method: "POST",
     body: JSON.stringify({
       cardNumber: payload.contact.card.replace(/\s+/g, ""),
