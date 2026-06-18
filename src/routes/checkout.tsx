@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useItinerary, itinerary, computeTotals } from "@/lib/itinerary";
 import { ADDON_PRICES, SEAT_TIER_PRICE, type SeatTier } from "@/domains/booking/types";
-import { submitBooking, fetchCardBrand } from "@/services/flightMockApi";
+import { submitBooking, fetchCardBrand, fetchOccupiedSeats } from "@/services/flightMockApi";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — KimFlights" }] }),
@@ -32,6 +32,7 @@ function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [brand, setBrand] = useState("");
+  const [occupiedSeats, setOccupiedSeats] = useState<Set<string>>(new Set());
   const [contact, setContact] = useState({
     email: "",
     phone: "",
@@ -42,6 +43,12 @@ function Checkout() {
   });
 
   const totals = useMemo(() => computeTotals(state, inferTier), [state]);
+
+  // Fetch already-reserved seats for this flight so we can disable them in SeatMap
+  useEffect(() => {
+    if (!state.primary?.id) return;
+    fetchOccupiedSeats(state.primary.id).then(setOccupiedSeats).catch(() => {});
+  }, [state.primary?.id]);
 
   const handleCardChange = async (val: string) => {
     const raw = val.replace(/\D/g, "");
@@ -158,13 +165,42 @@ function Checkout() {
             </FormSection>
 
             <FormSection title="Seats" step="02">
-              <div className="rounded-lg border border-border bg-card/50 p-4">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                  Chosen seats
-                </p>
-                <p className="mt-2 font-mono text-sm text-foreground">
-                  {state.selectedSeats.primary.map((seat) => seat ?? "—").join(", ")}
-                </p>
+              <div className="space-y-3">
+                {state.passengers.map((p, i) => {
+                  const seat = state.selectedSeats.primary[i];
+                  return (
+                    <div
+                      key={p.id}
+                      className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
+                        seat ? "border-foreground/30 bg-card" : "border-red-500/40 bg-red-500/5"
+                      }`}
+                    >
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {p.firstName || `Passenger ${i + 1}`} {p.lastName}
+                        </p>
+                        {seat ? (
+                          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                            Seat <span className="text-deal font-semibold">{seat}</span>
+                          </p>
+                        ) : (
+                          <p className="mt-0.5 text-xs text-red-400">No seat selected</p>
+                        )}
+                      </div>
+                      <Link
+                        to="/results"
+                        className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground"
+                      >
+                        Change
+                      </Link>
+                    </div>
+                  );
+                })}
+                {state.selectedSeats.primary.some((s) => !s) && (
+                  <p className="text-xs text-red-400">
+                    ⚠ All passengers must have a seat before paying.
+                  </p>
+                )}
               </div>
             </FormSection>
 

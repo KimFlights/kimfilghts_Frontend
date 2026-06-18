@@ -16,11 +16,12 @@ interface Props {
   primary: Flight;
   secondary: SecondaryUpsell | null;
   onClose: () => void;
+  onConfirm?: () => void; // called when user proceeds to checkout (seats preserved)
 }
 
 const STEPS = ["Passengers", "Add-ons", "Seats"] as const;
 
-export function ConfigPanel({ primary, secondary, onClose }: Props) {
+export function ConfigPanel({ primary, secondary, onClose, onConfirm }: Props) {
   const state = useItinerary();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -29,19 +30,14 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
   const [occupiedPrimarySeats, setOccupiedPrimarySeats] = useState<Set<string>>(new Set());
 
   // Independent seat maps per segment.
-  const primarySeats = useMemo(() => generateSeats(primary.seatCapacity), [primary.seatCapacity]);
-  const connectingSeats = useMemo(() => generateSeats(), []);
+  const primarySeats = useMemo(
+    () => generateSeats(primary.seatCapacity, occupiedPrimarySeats),
+    [primary.seatCapacity, occupiedPrimarySeats],
+  );
+  const connectingSeats = useMemo(() => generateSeats(114), []);
   const seatsBySegment: Record<SegmentKey, ReturnType<typeof generateSeats>> = {
     primary: primarySeats,
     connecting: connectingSeats,
-  };
-  const occupiedSeatsBySegment: Record<SegmentKey, Set<string>> = {
-    primary: occupiedPrimarySeats,
-    connecting: new Set(),
-  };
-  const capacityBySegment: Record<SegmentKey, number> = {
-    primary: primary.seatCapacity,
-    connecting: 114,
   };
 
   const seatTierOf = (id: string | null): SeatTier | null => {
@@ -97,15 +93,15 @@ export function ConfigPanel({ primary, secondary, onClose }: Props) {
   const handleContinue = () => {
     if (step < STEPS.length - 1) setStep(step + 1);
     else {
-      onClose();
+      // Final step: proceed to checkout — call onConfirm to preserve seats, not onClose
+      (onConfirm ?? onClose)();
       navigate({ to: "/checkout" });
     }
   };
 
   const renderSeatMap = (segment: SegmentKey) => (
     <SeatMap
-      capacity={capacityBySegment[segment]}
-      occupiedSeats={occupiedSeatsBySegment[segment]}
+      seats={seatsBySegment[segment]}
       selected={state.selectedSeats[segment]}
       currentPassenger={currentSeat}
       onSelect={handleSeatSelect}

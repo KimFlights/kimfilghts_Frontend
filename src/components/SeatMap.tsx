@@ -2,35 +2,43 @@ import { useMemo } from "react";
 import type { Seat, SeatTier } from "@/domains/booking/types";
 import { SEAT_TIER_PRICE } from "@/domains/booking/types";
 
-const DEFAULT_CAPACITY = 114;
-
+/**
+ * Generates a seat map based on aircraft capacity.
+ * Layout: rows 1-3 = Business (4 wide: A B _ E F)
+ *         rows 4-7 = Economy Plus (6 wide: A B C _ D E F)
+ *         rows 8+ = Economy (6 wide)
+ *
+ * `occupiedSeats` is a Set of seat IDs already reserved (e.g. "1A", "4C").
+ */
 export function generateSeats(
-  capacity = DEFAULT_CAPACITY,
+  capacity: number,
   occupiedSeats: Set<string> = new Set(),
 ): Seat[] {
   const seats: Seat[] = [];
-  const normalizedCapacity = Math.max(0, Math.floor(capacity));
-
-  const addRows = (startRow: number, maxRows: number, cols: string[], tier: SeatTier) => {
-    let row = startRow;
-    let rowsAdded = 0;
-    while (seats.length < normalizedCapacity && rowsAdded < maxRows) {
-      for (const col of cols) {
-        if (seats.length >= normalizedCapacity) break;
-        const id = `${row}${col}`;
-        seats.push({ id, row, col, tier, occupied: occupiedSeats.has(id) });
-      }
-      row += 1;
-      rowsAdded += 1;
-    }
-    return row;
-  };
-
+  // Business: rows 1-3, 4 seats/row → 12 seats
+  const businessRows = 3;
   const businessCols = ["A", "B", "E", "F"];
+  for (let row = 1; row <= businessRows; row++) {
+    for (const col of businessCols) {
+      const id = `${row}${col}`;
+      seats.push({ id, row, col, tier: "business", occupied: occupiedSeats.has(id) });
+    }
+  }
+
+  // Remaining seats split between Plus (rows 4-7) and Economy (8+)
+  const remainingCapacity = Math.max(0, capacity - businessRows * businessCols.length);
   const econCols = ["A", "B", "C", "D", "E", "F"];
-  let nextRow = addRows(1, 3, businessCols, "business");
-  nextRow = addRows(nextRow, 4, econCols, "plus");
-  addRows(nextRow, Number.POSITIVE_INFINITY, econCols, "economy");
+  const totalEconRows = Math.ceil(remainingCapacity / econCols.length);
+  const plusRows = Math.min(4, Math.floor(totalEconRows * 0.25)); // ~25% plus
+
+  for (let i = 0; i < totalEconRows; i++) {
+    const row = businessRows + 1 + i;
+    const tier: SeatTier = i < plusRows ? "plus" : "economy";
+    for (const col of econCols) {
+      const id = `${row}${col}`;
+      seats.push({ id, row, col, tier, occupied: occupiedSeats.has(id) });
+    }
+  }
 
   return seats;
 }
@@ -48,8 +56,7 @@ const TIER_LABEL: Record<SeatTier, string> = {
 };
 
 interface Props {
-  capacity: number;
-  occupiedSeats: Set<string>;
+  seats: Seat[];
   selected: (string | null)[];
   currentPassenger: number;
   onSelect: (seatId: string) => void;
@@ -59,8 +66,7 @@ interface Props {
 }
 
 export function SeatMap({
-  capacity,
-  occupiedSeats,
+  seats,
   selected,
   currentPassenger,
   onSelect,
@@ -68,8 +74,6 @@ export function SeatMap({
   passengerCount,
   passengerNames,
 }: Props) {
-  const seats = useMemo(() => generateSeats(capacity, occupiedSeats), [capacity, occupiedSeats]);
-
   const rows = useMemo(() => {
     const map = new Map<number, Seat[]>();
     seats.forEach((s) => {
@@ -100,7 +104,9 @@ export function SeatMap({
               }`}
             >
               <span>{passengerNames[i] || `P${i + 1}`}</span>
-              <span className="font-mono">{seat ?? "—"}</span>
+              <span className={`font-mono ${seat ? "text-deal" : "opacity-50"}`}>
+                {seat ?? "—"}
+              </span>
             </button>
           );
         })}
@@ -127,7 +133,6 @@ export function SeatMap({
         <div className="mb-6 h-6 rounded-t-[3rem] border-b border-border" />
         <div className="flex flex-col gap-1.5">
           {rows.map(([row, rowSeats]) => {
-            // determine aisle gap position
             const isBusiness = rowSeats[0].tier === "business";
             const left = isBusiness ? rowSeats.slice(0, 2) : rowSeats.slice(0, 3);
             const right = isBusiness ? rowSeats.slice(2) : rowSeats.slice(3);
@@ -183,14 +188,14 @@ function SeatBtn({
       onClick={() => onSelect(seat.id)}
       className={`flex h-8 w-8 items-center justify-center rounded-md border text-[9px] font-mono transition ${
         seat.occupied
-          ? "border-border bg-muted/40 text-muted-foreground/50 cursor-not-allowed"
+          ? "cursor-not-allowed border-border bg-muted/40 text-muted-foreground/50"
           : isMine
             ? "border-foreground bg-foreground text-background"
             : selected
-              ? "border-foreground/70 bg-foreground/30 text-foreground cursor-not-allowed"
+              ? "cursor-not-allowed border-foreground/70 bg-foreground/30 text-foreground"
               : `${TIER_BORDER[seat.tier]} bg-background text-foreground hover:bg-foreground/10`
       }`}
-      title={`${seat.id} · ${seat.tier}`}
+      title={`${seat.id} · ${seat.tier}${seat.occupied ? " (occupied)" : ""}`}
     >
       {seat.col}
     </button>
