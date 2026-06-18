@@ -215,7 +215,7 @@ export async function fetchCardBrand(bin: string): Promise<string> {
   if (!bin || bin.length < 6) return "";
   try {
     // The backend returns a plain string, not JSON
-    const response = await apiRequest<string>(`/api/payment/brand/${bin}`);
+    const response = await apiRequest<string>(`/payment/brand/${bin}`);
     return response || "";
   } catch (e) {
     return "";
@@ -289,7 +289,7 @@ export async function submitBooking(payload: BookingPayload): Promise<BookingRes
   });
 
   // 3. Pay
-  const paymentRes = await apiRequest<{ id: number; status: string; failureReason?: string }>("/api/payment/pay", {
+  const paymentRes = await apiRequest<{ id: number; status: string; failureReason?: string }>("/payment/pay", {
     method: "POST",
     body: JSON.stringify({
       cardNumber: payload.contact.card.replace(/\s+/g, ""),
