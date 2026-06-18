@@ -150,7 +150,7 @@ export async function fetchFlights(params: {
     date: params.date,
     passengers: String(params.passengers),
   });
-  const backendFlights = await apiRequest<BackendFlight[]>(`/api/flight?${qs.toString()}`);
+  const backendFlights = await apiRequest<BackendFlight[]>(`/api/flight/search?${qs.toString()}`);
   return backendFlights.map(mapBackendFlight).sort((a, b) => a.price - b.price);
 }
 
